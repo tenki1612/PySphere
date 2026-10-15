@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Test với mảng điểm và bonus",
+    "call": "process_scores(75, 80, 90, bonus=5.0)",
+    "expected": {
+      "count": 3,
+      "average": 86.67,
+      "max": 95.0,
+      "min": 80.0
+    }
+  },
+  {
+    "name": "Test khi không có điểm nào",
+    "call": "process_scores()",
+    "expected": {
+      "count": 0,
+      "average": 0.0,
+      "max": 0.0,
+      "min": 0.0
+    }
+  },
+  {
+    "name": "Test chặn trần điểm tối đa 100.0",
+    "call": "process_scores(95, 98, bonus=10.0)",
+    "expected": {
+      "count": 2,
+      "average": 100.0,
+      "max": 100.0,
+      "min": 100.0
+    }
+  }
+]

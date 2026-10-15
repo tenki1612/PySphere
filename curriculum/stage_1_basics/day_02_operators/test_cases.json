@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Test khách hàng thông thường không VIP",
+    "call": "calculate_discounted_price(100.0, 20.0, False)",
+    "expected": 80.0
+  },
+  {
+    "name": "Test khách hàng VIP được giảm thêm 5%",
+    "call": "calculate_discounted_price(100.0, 10.0, True)",
+    "expected": 85.5
+  },
+  {
+    "name": "Test không giảm giá nhưng có VIP",
+    "call": "calculate_discounted_price(200.0, 0.0, True)",
+    "expected": 190.0
+  }
+]

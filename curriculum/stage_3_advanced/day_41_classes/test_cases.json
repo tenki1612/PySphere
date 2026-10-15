@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Test nạp và rút tiền thành công",
+    "call": "acc = BankAccount('Alice', 100.0); acc.deposit(50.0); acc.withdraw(30.0); acc.get_balance()",
+    "expected": 120.0
+  },
+  {
+    "name": "Test chặn rút tiền vượt quá số dư",
+    "call": "acc = BankAccount('Bob', 50.0); result = acc.withdraw(100.0); (result, acc.get_balance())",
+    "expected": [false, 50.0]
+  },
+  {
+    "name": "Test khởi tạo số dư âm bị chặn về 0.0",
+    "call": "acc = BankAccount('Charlie', -20.0); acc.get_balance()",
+    "expected": 0.0
+  }
+]

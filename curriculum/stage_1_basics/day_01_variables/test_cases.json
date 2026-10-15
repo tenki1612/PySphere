@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Test cơ bản với tuổi là chuỗi số",
+    "call": "format_user_profile('Nguyen Van A', '20', 1.72, True)",
+    "expected": "Nguyen Van A | Tuổi: 20 | Cao: 1.72m | Trạng thái: Hoạt động"
+  },
+  {
+    "name": "Test với trạng thái không hoạt động",
+    "call": "format_user_profile('Tran Thi B', 25, 1.65, False)",
+    "expected": "Tran Thi B | Tuổi: 25 | Cao: 1.65m | Trạng thái: Tạm dừng"
+  },
+  {
+    "name": "Test với số tuổi int nguyên mẫu",
+    "call": "format_user_profile('Le C', 30, 1.8, True)",
+    "expected": "Le C | Tuổi: 30 | Cao: 1.8m | Trạng thái: Hoạt động"
+  }
+]
