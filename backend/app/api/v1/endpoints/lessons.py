@@ -116,3 +116,4 @@ async def create_lesson(
     await db.commit()
     await db.refresh(lesson)
     return LessonResponse.model_validate(lesson)
+

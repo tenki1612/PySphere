@@ -25,3 +25,4 @@ class UserProgress(Base):
 
     user = relationship("User", back_populates="progress_records")
     lesson = relationship("Lesson", back_populates="progress_records")
+

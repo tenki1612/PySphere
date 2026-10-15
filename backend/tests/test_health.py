@@ -11,3 +11,4 @@ async def test_health_check():
         data = response.json()
         assert data["status"] == "healthy"
         assert "version" in data
+

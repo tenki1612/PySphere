@@ -35,3 +35,4 @@ class SubmissionResultResponse(BaseModel):
     current_streak: int
     total_xp: int
     is_first_completion: bool
+

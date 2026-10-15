@@ -23,3 +23,4 @@ class Submission(Base):
 
     user = relationship("User", back_populates="submissions")
     lesson = relationship("Lesson", back_populates="submissions")
+

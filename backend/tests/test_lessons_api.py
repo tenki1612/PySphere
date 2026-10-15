@@ -64,3 +64,4 @@ async def test_lessons_and_progress_flow():
         me = me_res.json()
         assert me["xp"] == 50
         assert me["streak_count"] >= 1
+

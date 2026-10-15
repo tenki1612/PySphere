@@ -387,7 +387,7 @@ export default function LearnWorkspacePage() {
                   <pre className="min-h-[120px] rounded-md border border-brand-border/60 bg-black/60 p-3 font-mono text-xs text-gray-200 whitespace-pre-wrap overflow-x-auto">
                     {output.stdout || (
                       <span className="text-gray-500 italic">
-                        Kết quả `print()` sẽ hiển thị tại đây khi bạn bấm "Chạy code"...
+                        Kết quả `print()` sẽ hiển thị tại đây khi bạn bấm &quot;Chạy code&quot;...
                       </span>
                     )}
                   </pre>

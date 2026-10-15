@@ -36,3 +36,4 @@ async def test_register_and_login_flow():
         assert me_data["email"] == "coder@pysphere.dev"
         assert me_data["xp"] == 0
         assert me_data["streak_count"] == 0
+

@@ -63,3 +63,4 @@ User ||--o{ Submission : "submits"
 Lesson ||--o{ Submission : "evaluates submissions for"
 
 @enduml
+

@@ -137,3 +137,4 @@ async def get_submission_history(
     result = await db.execute(query)
     submissions = result.scalars().all()
     return [SubmissionResponse.model_validate(s) for s in submissions]
+

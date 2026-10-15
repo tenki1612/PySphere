@@ -26,3 +26,4 @@ class ProgressSummary(BaseModel):
     completion_rate_percentage: float
     current_streak: int
     total_xp: int
+

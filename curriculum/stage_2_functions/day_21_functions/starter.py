@@ -4,3 +4,4 @@ def process_scores(*scores, bonus: float = 0.0, scale: float = 1.0) -> dict:
     # TODO: Tính new_score cho mỗi phần tử, giới hạn tối đa 100.0
     # TODO: Tính count, average, max, min
     pass
+

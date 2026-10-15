@@ -71,3 +71,4 @@ async def get_progress_summary(
         current_streak=current_user.streak_count,
         total_xp=current_user.xp,
     )
+

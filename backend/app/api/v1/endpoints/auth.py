@@ -77,3 +77,4 @@ async def login(credentials: UserLogin, db: AsyncSession = Depends(get_db)):
 async def get_me(current_user: User = Depends(get_current_user)):
     """Return profile of currently logged-in user."""
     return UserResponse.model_validate(current_user)
+

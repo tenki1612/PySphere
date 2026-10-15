@@ -17,3 +17,4 @@ Viết hàm `calculate_discounted_price(original_price: float, discount_percent:
 - Giá sau giảm 10%: `90.0`
 - Giảm thêm 5% VIP: `90.0 * 0.95 = 85.5`
 - Trả về: `85.5`
+

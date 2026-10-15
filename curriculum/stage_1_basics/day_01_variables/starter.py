@@ -10,3 +10,4 @@ def format_user_profile(name: str, age, height: float, is_active: bool) -> str:
     
     # TODO: Trả về chuỗi định dạng chính xác
     pass
+

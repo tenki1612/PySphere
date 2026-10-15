@@ -29,3 +29,4 @@ class Lesson(Base):
     submissions = relationship(
         "Submission", back_populates="lesson", cascade="all, delete-orphan"
     )
+

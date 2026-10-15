@@ -30,3 +30,4 @@ HEALTHCHECK --interval=10s --timeout=5s --retries=3 \
 
 # Start FastAPI server
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+

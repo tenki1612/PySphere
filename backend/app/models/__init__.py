@@ -5,3 +5,4 @@ from app.models.progress import UserProgress
 from app.models.submission import Submission
 
 __all__ = ["Base", "User", "Lesson", "UserProgress", "Submission"]
+

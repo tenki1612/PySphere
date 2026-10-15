@@ -76,3 +76,4 @@ Sơ đồ PlantUML: [`docs/architecture/pyodide_execution_flow.puml`](./architec
    - Chạy hàm kiểm thử tự động với dữ liệu đầu vào.
    - Worker phản hồi thông điệp `SUCCESS` kèm kết quả đầu ra và thời gian thực thi (ms) về Main Thread.
 3. Trong lúc gõ code, hệ thống tự động debounce (1.5 giây) để lưu bản nháp vào `localStorage` của trình duyệt, đồng thời gửi tín hiệu bất đồng bộ nhẹ lên backend để học viên có thể học tiếp tục trên máy khác.
+

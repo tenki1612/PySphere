@@ -14,3 +14,4 @@ Viết hàm `process_scores(*scores, bonus: float = 0.0, scale: float = 1.0) -> 
    - `"average"`: Điểm trung bình (làm tròn 2 chữ số thập phân)
    - `"max"`: Điểm cao nhất sau khi tính
    - `"min"`: Điểm thấp nhất sau khi tính
+

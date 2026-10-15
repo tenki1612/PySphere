@@ -3,3 +3,4 @@ def calculate_discounted_price(original_price: float, discount_percent: float, i
     if is_vip:
         price_after_discount = price_after_discount * 0.95
     return round(price_after_discount, 2)
+

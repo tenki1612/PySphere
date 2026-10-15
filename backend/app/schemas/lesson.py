@@ -40,3 +40,4 @@ class LessonResponse(LessonBase):
     draft_code: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
+

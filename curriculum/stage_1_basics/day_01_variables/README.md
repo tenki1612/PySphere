@@ -38,3 +38,4 @@ Hàm trả về một chuỗi văn bản theo định dạng chính xác:
 *Ví dụ:*
 `format_user_profile("Nguyen Van A", "20", 1.72, True)`
 -> `"Nguyen Van A | Tuổi: 20 | Cao: 1.72m | Trạng thái: Hoạt động"`
+

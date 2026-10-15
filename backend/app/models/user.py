@@ -32,3 +32,4 @@ class User(Base):
     submissions = relationship(
         "Submission", back_populates="user", cascade="all, delete-orphan"
     )
+

@@ -29,3 +29,4 @@ async def test_seed_and_fetch_lessons():
         detail = detail_res.json()
         assert "format_user_profile" in detail["starter_code"]
         assert len(detail["test_cases"]) >= 3
+

@@ -9,3 +9,4 @@ def process_scores(*scores, bonus: float = 0.0, scale: float = 1.0) -> dict:
         "max": max(processed),
         "min": min(processed),
     }
+
