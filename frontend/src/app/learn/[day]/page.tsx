@@ -35,7 +35,7 @@ export default function LearnWorkspacePage() {
   const [submitting, setSubmitting] = useState(false);
   const [submissionFeedback, setSubmissionFeedback] = useState<any>(null);
 
-  const { isReady, isRunning, output, runCode } = usePyodide();
+  const { isReady, isRunning, output, runCode, runCodeAsync } = usePyodide();
   const { updateXpAndStreak } = useLessonStore();
 
   // Load lesson details and draft
@@ -98,51 +98,49 @@ export default function LearnWorkspacePage() {
     runCode(code, lesson?.test_cases || []);
   };
 
-  // Handle Submit Solution
+  // Handle Submit Solution (Promise-based, zero race condition)
   const handleSubmit = async () => {
     setActiveTab("console");
     setSubmitting(true);
     setSubmissionFeedback(null);
 
-    // 1. Run through Pyodide WASM first to verify test cases
-    runCode(code, lesson?.test_cases || []);
+    try {
+      // 1. Run and evaluate code directly via Promise
+      const evalResult = await runCodeAsync(code, lesson?.test_cases || []);
 
-    // 2. Wait 400ms for worker evaluation
-    setTimeout(async () => {
-      try {
-        const passedAll =
-          output.testResults.length > 0 &&
-          output.testResults.every((t) => t.passed);
+      // 2. Check if all test cases passed
+      const passedAll =
+        evalResult.testResults.length > 0 &&
+        evalResult.testResults.every((t) => t.passed);
 
-        const status = passedAll ? "PASSED" : "FAILED";
-        const result = await api.submitSolution({
-          lesson_id: lesson?.id || dayNumber,
-          submitted_code: code,
-          status,
-          execution_time_ms: output.executionTimeMs || 30,
-          tests_passed: output.testResults.filter((t) => t.passed).length,
-          tests_total: output.testResults.length,
+      const status = passedAll ? "PASSED" : "FAILED";
+      const result = await api.submitSolution({
+        lesson_id: lesson?.id || dayNumber,
+        submitted_code: code,
+        status,
+        execution_time_ms: evalResult.executionTimeMs || 30,
+        tests_passed: evalResult.testResults.filter((t) => t.passed).length,
+        tests_total: evalResult.testResults.length,
+      });
+
+      setSubmissionFeedback(result);
+
+      if (passedAll) {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
         });
-
-        setSubmissionFeedback(result);
-
-        if (passedAll) {
-          confetti({
-            particleCount: 100,
-            spread: 70,
-            origin: { y: 0.6 },
-          });
-          updateXpAndStreak(result.xp_earned || 50, result.current_streak || 1);
-        }
-      } catch (err: any) {
-        setSubmissionFeedback({
-          status: "FAILED",
-          error_message: err.message || "Lỗi khi nộp bài",
-        });
-      } finally {
-        setSubmitting(false);
+        updateXpAndStreak(result.xp_earned || 50, result.current_streak || 1);
       }
-    }, 600);
+    } catch (err: any) {
+      setSubmissionFeedback({
+        status: "FAILED",
+        error_message: err.message || "Lỗi khi nộp bài",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Reset code to starter template

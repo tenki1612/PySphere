@@ -30,9 +30,10 @@ export function usePyodide() {
   });
 
   const workerRef = useRef<Worker | null>(null);
+  const pendingResolverRef = useRef<((value: PyodideRunOutput) => void) | null>(null);
+  const watchdogTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Instantiate web worker via inline blob script to avoid bundler path issues
     const workerScript = `
       let pyodide = null;
       let isInitializing = false;
@@ -68,18 +69,37 @@ export function usePyodide() {
             pyodide.setStdout({ batched: (msg) => outBuf.push(msg) });
             pyodide.setStderr({ batched: (msg) => errBuf.push(msg) });
             
+            // Execute main code
             await pyodide.runPythonAsync(code);
 
+            // Execute test assertions
             const testResults = [];
             if (Array.isArray(testCases)) {
               for (const tc of testCases) {
+                let pyResult = null;
                 try {
-                  const res = await pyodide.runPythonAsync(tc.call);
-                  const jsRes = res && typeof res.toJs === "function" ? res.toJs() : res;
-                  const passed = JSON.stringify(jsRes) === JSON.stringify(tc.expected);
-                  testResults.push({ name: tc.name, passed, actual: jsRes, expected: tc.expected });
+                  const rawRes = await pyodide.runPythonAsync(tc.call);
+                  if (rawRes && typeof rawRes.toJs === "function") {
+                    pyResult = rawRes.toJs({ dict_converter: Object.fromEntries });
+                    if (typeof rawRes.destroy === "function") rawRes.destroy();
+                  } else {
+                    pyResult = rawRes;
+                  }
+
+                  const passed = JSON.stringify(pyResult) === JSON.stringify(tc.expected);
+                  testResults.push({
+                    name: tc.name,
+                    passed,
+                    actual: pyResult,
+                    expected: tc.expected
+                  });
                 } catch (tcErr) {
-                  testResults.push({ name: tc.name, passed: false, error: tcErr.message, expected: tc.expected });
+                  testResults.push({
+                    name: tc.name,
+                    passed: false,
+                    error: tcErr.message || String(tcErr),
+                    expected: tc.expected
+                  });
                 }
               }
             }
@@ -110,50 +130,105 @@ export function usePyodide() {
 
     worker.onmessage = (event) => {
       const { type, stdout, stderr, error, testResults, executionTimeMs } = event.data;
+
+      if (watchdogTimerRef.current) {
+        clearTimeout(watchdogTimerRef.current);
+        watchdogTimerRef.current = null;
+      }
+
       if (type === "READY") {
         setIsReady(true);
       } else if (type === "SUCCESS") {
         setIsRunning(false);
-        setOutput({
+        const res: PyodideRunOutput = {
           stdout: stdout || "",
           stderr: stderr || "",
           error: null,
           testResults: testResults || [],
           executionTimeMs: executionTimeMs || 0,
-        });
+        };
+        setOutput(res);
+        if (pendingResolverRef.current) {
+          pendingResolverRef.current(res);
+          pendingResolverRef.current = null;
+        }
       } else if (type === "ERROR") {
         setIsRunning(false);
-        setOutput({
+        const res: PyodideRunOutput = {
           stdout: stdout || "",
           stderr: stderr || "",
           error: error || "Runtime error",
           testResults: [],
           executionTimeMs: 0,
-        });
+        };
+        setOutput(res);
+        if (pendingResolverRef.current) {
+          pendingResolverRef.current(res);
+          pendingResolverRef.current = null;
+        }
       }
     };
 
     return () => {
       worker.terminate();
+      if (watchdogTimerRef.current) clearTimeout(watchdogTimerRef.current);
     };
   }, []);
 
-  const runCode = useCallback((code: string, testCases: any[] = []) => {
-    if (!workerRef.current) return;
-    setIsRunning(true);
-    setOutput((prev) => ({ ...prev, error: null }));
-    workerRef.current.postMessage({
-      type: "RUN",
-      code,
-      testCases,
-    });
-  }, []);
+  const runCodeAsync = useCallback(
+    (code: string, testCases: any[] = []): Promise<PyodideRunOutput> => {
+      return new Promise((resolve) => {
+        if (!workerRef.current) {
+          resolve({
+            stdout: "",
+            stderr: "",
+            error: "Web Worker chưa sẵn sàng",
+            testResults: [],
+            executionTimeMs: 0,
+          });
+          return;
+        }
+
+        setIsRunning(true);
+        setOutput((prev) => ({ ...prev, error: null }));
+        pendingResolverRef.current = resolve;
+
+        // 10s watchdog timer in case user code hits infinite loop
+        if (watchdogTimerRef.current) clearTimeout(watchdogTimerRef.current);
+        watchdogTimerRef.current = setTimeout(() => {
+          setIsRunning(false);
+          const timeoutRes: PyodideRunOutput = {
+            stdout: "",
+            stderr: "Execution Timeout: Mã nguồn chạy vượt quá 10 giây (khả năng vòng lặp vô tận).",
+            error: "Execution Timeout (> 10s)",
+            testResults: [],
+            executionTimeMs: 10000,
+          };
+          setOutput(timeoutRes);
+          if (pendingResolverRef.current) {
+            pendingResolverRef.current(timeoutRes);
+            pendingResolverRef.current = null;
+          }
+        }, 10000);
+
+        workerRef.current.postMessage({
+          type: "RUN",
+          code,
+          testCases,
+        });
+      });
+    },
+    []
+  );
 
   return {
     isReady,
     isRunning,
     output,
-    runCode,
+    runCode: (code: string, testCases: any[] = []) => {
+      runCodeAsync(code, testCases);
+    },
+    runCodeAsync,
   };
 }
 

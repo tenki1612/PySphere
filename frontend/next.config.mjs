@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: false, // Prevents double mounting Monaco & Worker during dev
+  reactStrictMode: false,
+  output: "standalone",
   async headers() {
     return [
       {

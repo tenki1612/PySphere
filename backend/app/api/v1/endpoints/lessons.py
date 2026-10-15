@@ -74,7 +74,12 @@ async def get_lesson(
 
     is_completed = False
     draft_code = None
+    can_view_solution = False
+
     if current_user:
+        if current_user.is_superuser:
+            can_view_solution = True
+
         prog_res = await db.execute(
             select(UserProgress).where(
                 UserProgress.user_id == current_user.id,
@@ -85,6 +90,8 @@ async def get_lesson(
         if prog:
             is_completed = prog.is_completed
             draft_code = prog.draft_code
+            if is_completed:
+                can_view_solution = True
 
     return LessonResponse(
         id=lesson.id,
@@ -95,7 +102,7 @@ async def get_lesson(
         topic=lesson.topic,
         description_md=lesson.description_md,
         starter_code=lesson.starter_code,
-        solution_code=lesson.solution_code,
+        solution_code=lesson.solution_code if can_view_solution else None,
         test_cases=lesson.test_cases,
         xp_reward=lesson.xp_reward,
         created_at=lesson.created_at,
@@ -110,7 +117,13 @@ async def create_lesson(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Create or seed a lesson (admin/dev)."""
+    """Create or seed a lesson (admin superuser only)."""
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Superuser access required to create curriculum lessons",
+        )
+
     lesson = Lesson(**lesson_in.model_dump())
     db.add(lesson)
     await db.commit()

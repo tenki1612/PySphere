@@ -47,7 +47,7 @@ export function Navbar() {
         {/* Streak Counter */}
         <div className="flex items-center gap-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 px-3 py-1 text-xs font-semibold text-orange-400">
           <Flame className="h-4 w-4 fill-orange-500 text-orange-500 animate-pulse" />
-          <span>{user?.streak_count || 1} ngày streak</span>
+          <span>{user?.streak_count ?? 0} ngày streak</span>
         </div>
 
         {/* XP Points */}

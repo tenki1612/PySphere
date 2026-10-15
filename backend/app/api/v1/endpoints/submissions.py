@@ -25,25 +25,14 @@ async def submit_code(
     db: AsyncSession = Depends(get_db),
 ):
     """Save code submission and handle gamification (XP & Streak)."""
-    # 1. Fetch lesson
+    # 1. Fetch lesson - return 404 if not found
     lesson_res = await db.execute(select(Lesson).where(Lesson.id == payload.lesson_id))
     lesson = lesson_res.scalar_one_or_none()
     if not lesson:
-        # Create a fallback placeholder lesson if testing/seeding on the fly
-        lesson = Lesson(
-            id=payload.lesson_id,
-            stage=1,
-            day_number=payload.lesson_id,
-            slug=f"lesson-{payload.lesson_id}",
-            title=f"Lesson {payload.lesson_id}",
-            topic="Basics",
-            description_md="Description",
-            starter_code="",
-            solution_code="",
-            xp_reward=50,
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Lesson with ID {payload.lesson_id} not found",
         )
-        db.add(lesson)
-        await db.flush()
 
     # 2. Record submission record
     submission = Submission(
@@ -90,20 +79,20 @@ async def submit_code(
             xp_earned = lesson.xp_reward or 50
             current_user.xp += xp_earned
 
-            # Update streak
-            today = date.today()
-            if current_user.last_active_date is None:
-                current_user.streak_count = 1
-                current_user.last_active_date = today
-            elif current_user.last_active_date == today:
-                pass  # already active today, keep streak
-            elif current_user.last_active_date == today - timedelta(days=1):
-                current_user.streak_count += 1
-                current_user.last_active_date = today
-            else:
-                # Missed more than 1 day
-                current_user.streak_count = 1
-                current_user.last_active_date = today
+        # Update streak on ANY passed submission on a new day (UTC based)
+        today = datetime.now(timezone.utc).date()
+        if current_user.last_active_date is None:
+            current_user.streak_count = 1
+            current_user.last_active_date = today
+        elif current_user.last_active_date == today:
+            pass  # Already active today, streak maintained
+        elif current_user.last_active_date == today - timedelta(days=1):
+            current_user.streak_count += 1
+            current_user.last_active_date = today
+        else:
+            # Missed more than 1 day, reset streak to 1
+            current_user.streak_count = 1
+            current_user.last_active_date = today
 
     await db.commit()
     await db.refresh(submission)

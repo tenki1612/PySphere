@@ -1,0 +1,7 @@
+[
+  {
+    "name": "Kiểm thử mặc định Ngày 57",
+    "call": "solve_day_57('test')",
+    "expected": "test"
+  }
+]

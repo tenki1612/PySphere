@@ -11,13 +11,22 @@ class LessonBase(BaseModel):
     topic: str
     description_md: str
     starter_code: str
-    solution_code: str
+    solution_code: Optional[str] = None
     test_cases: Optional[List[Any]] = None
     xp_reward: int = 50
 
 
-class LessonCreate(LessonBase):
-    pass
+class LessonCreate(BaseModel):
+    stage: int
+    day_number: int
+    slug: str
+    title: str
+    topic: str
+    description_md: str
+    starter_code: str
+    solution_code: str
+    test_cases: Optional[List[Any]] = None
+    xp_reward: int = 50
 
 
 class LessonListItem(BaseModel):
@@ -33,8 +42,18 @@ class LessonListItem(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class LessonResponse(LessonBase):
+class LessonResponse(BaseModel):
     id: int
+    stage: int
+    day_number: int
+    slug: str
+    title: str
+    topic: str
+    description_md: str
+    starter_code: str
+    solution_code: Optional[str] = None
+    test_cases: Optional[List[Any]] = None
+    xp_reward: int
     created_at: datetime
     is_completed: bool = False
     draft_code: Optional[str] = None
