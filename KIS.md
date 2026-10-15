@@ -132,3 +132,4 @@ npm run dev
    - Database: Neon Serverless PostgreSQL.
    - Backend: Container deploy lên AWS ECS / Render / Railway / Google Cloud Run.
    - Frontend: Vercel.
+
