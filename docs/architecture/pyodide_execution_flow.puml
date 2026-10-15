@@ -1,0 +1,49 @@
+@startuml pyodide_execution_flow
+title PySphere - Client-Side Pyodide WASM Execution Flow
+
+actor User
+boundary "Monaco Editor (Main Thread)" as Editor
+control "Pyodide Worker Hook" as Hook
+entity "Web Worker Sandbox" as Worker
+database "Pyodide WASM Engine" as Pyodide
+boundary "Console / Visualizer UI" as UI
+boundary "FastAPI Backend" as Backend
+
+User -> Editor : Types Python Code
+Editor -> Hook : Debounced change (every 1.5s)
+Hook -> Editor : Saves draft to browser localStorage
+Hook -> Backend : POST /api/v1/progress/sync-draft (async non-blocking)
+
+User -> Editor : Clicks "Run Code" / "Submit"
+Editor -> Hook : executeCode(code, testCases)
+Hook -> UI : Set UI State: RUNNING (spinner/indicator)
+Hook -> Worker : postMessage({ type: "EXECUTE", code, testCases })
+
+activate Worker
+Worker -> Pyodide : Reset stdout / stderr buffers
+Worker -> Pyodide : runPythonAsync(code)
+activate Pyodide
+
+alt Normal Execution
+    Pyodide --> Worker : Output string (stdout)
+    Worker -> Pyodide : Evaluate test cases (if provided)
+    Pyodide --> Worker : Assertion results (pass/fail)
+    Worker -> Hook : postMessage({ type: "SUCCESS", stdout, stderr, testResults, executionTimeMs })
+else Syntax or Runtime Exception
+    Pyodide --> Worker : Python Exception Traceback
+    Worker -> Hook : postMessage({ type: "ERROR", error: formattedTraceback })
+end
+deactivate Pyodide
+deactivate Worker
+
+Hook -> UI : Render stdout/stderr in Interactive Console
+Hook -> UI : Display Test Cases Pass/Fail Badges
+
+alt Code Passed All Test Cases
+    Hook -> Backend : POST /api/v1/submissions (code, status: PASSED, time)
+    Backend -> Backend : Update User Progress, Add XP (+50), Check Streak
+    Backend --> Hook : { xpEarned: 50, currentStreak: 3, newTotalXp: 450 }
+    Hook -> UI : Confetti trigger & Streak banner update
+end
+
+@enduml

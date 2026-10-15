@@ -1,0 +1,67 @@
+@startuml system_overview
+title PySphere - Decoupled Modular System Architecture
+
+skinparam componentStyle uml2
+skinparam packageStyle rectangle
+
+cloud "User Client Device" {
+    package "Modern Web Browser" {
+        component [Next.js App (Client UI)] as NextApp {
+            [Monaco Editor] as Monaco
+            [Algorithm Visualizer (Canvas/D3)] as Visualizer
+            [Progress & Streak Store (Zustand)] as StateStore
+            [HTTP Client (Fetch / Axios)] as HttpClient
+        }
+        
+        node "Web Worker Sandbox" {
+            component [Pyodide Engine (WebAssembly)] as PyodideEngine {
+                [Python 3 Runtime]
+                [MicroPip / Packages]
+                [Stdout/Stderr Interceptor]
+            }
+        }
+    }
+}
+
+cloud "Backend Cloud Infrastructure" {
+    package "FastAPI Application (Containerized)" as BackendApp {
+        component [FastAPI Gateway / CORS] as Gateway
+        component [Auth & JWT Router] as AuthRouter
+        component [Curriculum & Lessons Router] as LessonRouter
+        component [Progress & Sync Router] as ProgressRouter
+        component [Submissions & XP Router] as SubmissionsRouter
+        component [SQLAlchemy 2.0 Async ORM] as ORM
+    }
+}
+
+database "Cloud Database" {
+    database "PostgreSQL (Neon / Docker)" as Postgres {
+        [Users Table]
+        [Lessons Table]
+        [UserProgress Table]
+        [Submissions Table]
+    }
+}
+
+' Browser Internal Communication
+Monaco ..> PyodideEngine : postMessage(code, testCases)
+PyodideEngine ..> Monaco : postMessage(results, stdout, stderr)
+Monaco ..> Visualizer : triggers step visualizer
+NextApp ..> StateStore : read/write user state
+NextApp ..> HttpClient : async sync requests
+
+' Client to Backend Communication
+HttpClient -down-> Gateway : HTTPS REST API (Bearer JWT)
+Gateway --> AuthRouter
+Gateway --> LessonRouter
+Gateway --> ProgressRouter
+Gateway --> SubmissionsRouter
+
+' Backend to Database
+AuthRouter --> ORM
+LessonRouter --> ORM
+ProgressRouter --> ORM
+SubmissionsRouter --> ORM
+ORM -down-> Postgres : AsyncPG Connection Pool
+
+@enduml
