@@ -1,25 +1,31 @@
 "use client";
 
 import Editor from "@monaco-editor/react";
+import { useLessonStore } from "@/store/useLessonStore";
 
 interface MonacoEditorProps {
   value: string;
   onChange: (value: string) => void;
   readOnly?: boolean;
+  theme?: "vs-dark" | "light";
 }
 
 export function MonacoEditor({
   value,
   onChange,
   readOnly = false,
+  theme: customTheme,
 }: MonacoEditorProps) {
+  const storeTheme = useLessonStore((s) => s.theme);
+  const activeMonacoTheme = customTheme || (storeTheme === "dark" ? "vs-dark" : "light");
+
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-lg border border-brand-border bg-[#1e1e1e]">
+    <div className="relative h-full w-full overflow-hidden rounded-lg border border-gray-200 dark:border-brand-border bg-white dark:bg-[#1e1e1e] transition-colors">
       <Editor
         height="100%"
         defaultLanguage="python"
         language="python"
-        theme="vs-dark"
+        theme={activeMonacoTheme}
         value={value}
         onChange={(val) => onChange(val || "")}
         options={{

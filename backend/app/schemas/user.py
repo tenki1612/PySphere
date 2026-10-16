@@ -1,6 +1,6 @@
 from datetime import datetime, date
 from typing import Optional
-from pydantic import BaseModel, EmailStr, ConfigDict
+from pydantic import BaseModel, EmailStr, ConfigDict, computed_field
 
 
 class UserBase(BaseModel):
@@ -26,6 +26,11 @@ class UserResponse(UserBase):
     last_active_date: Optional[date] = None
     created_at: datetime
 
+    @computed_field
+    @property
+    def role(self) -> str:
+        return "admin" if self.is_superuser else "user"
+
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -37,4 +42,3 @@ class Token(BaseModel):
 
 class TokenPayload(BaseModel):
     sub: Optional[str] = None
-

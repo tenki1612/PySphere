@@ -44,12 +44,15 @@ async def test_lessons_and_progress_flow():
         assert lessons_res.status_code == 200
         lessons = lessons_res.json()
         assert len(lessons) >= 1
+        assert "has_visualizer" in lessons[0]
 
         # 2. Check that solution_code is HIDDEN for uncompleted lesson
         detail_res = await client.get("/api/v1/lessons/1", headers=headers)
         assert detail_res.status_code == 200
         detail = detail_res.json()
         assert detail["solution_code"] is None, "Solution code must be hidden for uncompleted lesson"
+        assert detail["has_visualizer"] is False
+        assert detail["visualizer_type"] is None
 
         # 3. Sync draft code for a lesson
         draft_payload = {

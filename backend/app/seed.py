@@ -68,6 +68,20 @@ def parse_lesson_directory(day_dir: Path):
         except Exception as e:
             print(f"Warning: Failed to parse {test_cases_path}: {e}")
 
+    # Map algorithm-focused days that require visualizer Canvas
+    ALGORITHM_DAYS = {
+        5: "sorting",
+        6: "sorting",
+        15: "loop_traversal",
+        17: "loop_traversal",
+        19: "nested_loops",
+        20: "sorting",
+        30: "recursion_tree",
+        50: "array_matrix",
+    }
+    has_vis = day_number in ALGORITHM_DAYS
+    vis_type = ALGORITHM_DAYS.get(day_number)
+
     return {
         "stage": stage,
         "day_number": day_number,
@@ -79,6 +93,8 @@ def parse_lesson_directory(day_dir: Path):
         "solution_code": solution_code,
         "test_cases": test_cases,
         "xp_reward": 50,
+        "has_visualizer": has_vis,
+        "visualizer_type": vis_type,
     }
 
 

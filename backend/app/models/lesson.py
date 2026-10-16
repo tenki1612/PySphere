@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from sqlalchemy import Column, DateTime, Integer, String, Text, JSON
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text, JSON
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 
@@ -18,6 +18,8 @@ class Lesson(Base):
     solution_code = Column(Text, nullable=False)
     test_cases = Column(JSON, nullable=True)  # List of test fixtures / inputs / expected outputs
     xp_reward = Column(Integer, default=50)
+    has_visualizer = Column(Boolean, default=False)
+    visualizer_type = Column(String(50), nullable=True)  # e.g. "sorting", "searching"
     created_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
@@ -29,4 +31,3 @@ class Lesson(Base):
     submissions = relationship(
         "Submission", back_populates="lesson", cascade="all, delete-orphan"
     )
-

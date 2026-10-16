@@ -14,6 +14,8 @@ class LessonBase(BaseModel):
     solution_code: Optional[str] = None
     test_cases: Optional[List[Any]] = None
     xp_reward: int = 50
+    has_visualizer: bool = False
+    visualizer_type: Optional[str] = None
 
 
 class LessonCreate(BaseModel):
@@ -27,6 +29,8 @@ class LessonCreate(BaseModel):
     solution_code: str
     test_cases: Optional[List[Any]] = None
     xp_reward: int = 50
+    has_visualizer: bool = False
+    visualizer_type: Optional[str] = None
 
 
 class LessonListItem(BaseModel):
@@ -37,6 +41,8 @@ class LessonListItem(BaseModel):
     title: str
     topic: str
     xp_reward: int
+    has_visualizer: bool = False
+    visualizer_type: Optional[str] = None
     is_completed: bool = False
 
     model_config = ConfigDict(from_attributes=True)
@@ -54,6 +60,8 @@ class LessonResponse(BaseModel):
     solution_code: Optional[str] = None
     test_cases: Optional[List[Any]] = None
     xp_reward: int
+    has_visualizer: bool = False
+    visualizer_type: Optional[str] = None
     created_at: datetime
     is_completed: bool = False
     draft_code: Optional[str] = None

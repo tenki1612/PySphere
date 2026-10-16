@@ -1,11 +1,13 @@
 import { create } from "zustand";
 
-interface UserState {
+export interface UserState {
   id?: number;
   username?: string;
   email?: string;
   xp: number;
   streak_count: number;
+  is_superuser?: boolean;
+  role?: string;
 }
 
 interface LessonStore {
@@ -13,22 +15,29 @@ interface LessonStore {
   activeDay: number;
   draftCode: string;
   activeTab: "code" | "visualizer";
+  theme: "dark" | "light";
   setUser: (user: UserState | null) => void;
+  logout: () => void;
   updateXpAndStreak: (xpEarned: number, streak: number) => void;
   setActiveDay: (day: number) => void;
   setDraftCode: (code: string) => void;
   setActiveTab: (tab: "code" | "visualizer") => void;
+  setTheme: (theme: "dark" | "light") => void;
 }
 
 export const useLessonStore = create<LessonStore>((set) => ({
-  user: {
-    xp: 0,
-    streak_count: 0,
-  },
+  user: null,
   activeDay: 1,
   draftCode: "",
   activeTab: "code",
+  theme: "dark",
   setUser: (user) => set({ user }),
+  logout: () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("pysphere_token");
+    }
+    set({ user: null });
+  },
   updateXpAndStreak: (xpEarned, streak) =>
     set((state) => ({
       user: state.user
@@ -42,5 +51,5 @@ export const useLessonStore = create<LessonStore>((set) => ({
   setActiveDay: (activeDay) => set({ activeDay }),
   setDraftCode: (draftCode) => set({ draftCode }),
   setActiveTab: (activeTab) => set({ activeTab }),
+  setTheme: (theme) => set({ theme }),
 }));
-

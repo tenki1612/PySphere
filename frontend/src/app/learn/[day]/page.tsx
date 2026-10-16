@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useRef, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import confetti from "canvas-confetti";
 import {
   Play,
@@ -16,11 +17,17 @@ import {
   Activity,
   Sparkles,
   Loader2,
+  Lock,
+  LogIn,
+  UserPlus,
+  ShieldCheck,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { MonacoEditor } from "@/components/editor/MonacoEditor";
 import { AlgorithmVisualizer } from "@/components/visualizer/AlgorithmVisualizer";
 import { usePyodide } from "@/lib/pyodide/usePyodide";
-import { api } from "@/lib/api";
+import { api, getToken } from "@/lib/api";
 import { useLessonStore } from "@/store/useLessonStore";
 
 export default function LearnWorkspacePage() {
@@ -34,9 +41,19 @@ export default function LearnWorkspacePage() {
   const [activeTab, setActiveTab] = useState<"console" | "visualizer">("console");
   const [submitting, setSubmitting] = useState(false);
   const [submissionFeedback, setSubmissionFeedback] = useState<any>(null);
+  const [mounted, setMounted] = useState(false);
+  const [showAdminSolution, setShowAdminSolution] = useState(false);
 
   const { isReady, isRunning, output, runCode, runCodeAsync } = usePyodide();
-  const { updateXpAndStreak } = useLessonStore();
+  const { user, updateXpAndStreak } = useLessonStore();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const token = typeof window !== "undefined" ? getToken() : null;
+  const isAuthenticated = mounted ? Boolean(user || token) : true;
+  const isAdmin = user?.role === "admin" || user?.is_superuser === true;
 
   // Load lesson details and draft
   useEffect(() => {
@@ -72,6 +89,7 @@ export default function LearnWorkspacePage() {
             },
           ],
           xp_reward: 50,
+          has_visualizer: false,
         };
         setLesson(fallback);
         setCode(fallback.starter_code);
@@ -80,9 +98,16 @@ export default function LearnWorkspacePage() {
     fetchLesson();
   }, [dayNumber]);
 
-  // Debounced Autosave to localStorage & Backend
+  // Ensure active tab switches to console if lesson has no visualizer
   useEffect(() => {
-    if (!code || !dayNumber) return;
+    if (lesson && !lesson.has_visualizer && activeTab === "visualizer") {
+      setActiveTab("console");
+    }
+  }, [lesson, activeTab]);
+
+  // Debounced Autosave to localStorage & Backend (only if authenticated)
+  useEffect(() => {
+    if (!code || !dayNumber || !isAuthenticated) return;
     localStorage.setItem(`pysphere_draft_day_${dayNumber}`, code);
 
     const timer = setTimeout(() => {
@@ -90,16 +115,24 @@ export default function LearnWorkspacePage() {
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [code, dayNumber]);
+  }, [code, dayNumber, isAuthenticated]);
 
   // Handle Run Code (Client-Side WASM)
   const handleRunCode = () => {
+    if (!isAuthenticated) {
+      router.push(`/login?redirect=/learn/${dayNumber}`);
+      return;
+    }
     setActiveTab("console");
     runCode(code, lesson?.test_cases || []);
   };
 
   // Handle Submit Solution (Promise-based, zero race condition)
   const handleSubmit = async () => {
+    if (!isAuthenticated) {
+      router.push(`/login?redirect=/learn/${dayNumber}`);
+      return;
+    }
     setActiveTab("console");
     setSubmitting(true);
     setSubmissionFeedback(null);
@@ -152,37 +185,63 @@ export default function LearnWorkspacePage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden">
+    <div className="flex-1 flex flex-col h-[calc(100vh-3.5rem)] overflow-hidden bg-background text-foreground transition-colors">
       {/* Top Workspace Toolbar */}
-      <div className="flex h-12 w-full items-center justify-between border-b border-brand-border bg-brand-dark px-4">
+      <div className="flex h-12 w-full items-center justify-between border-b border-gray-200 dark:border-brand-border bg-white dark:bg-brand-dark px-4 transition-colors">
         {/* Navigation & Lesson Title */}
         <div className="flex items-center gap-3 truncate">
           <button
             onClick={() => router.push(`/learn/${Math.max(1, dayNumber - 1)}`)}
             disabled={dayNumber <= 1}
-            className="rounded p-1 text-gray-400 hover:bg-brand-border/40 hover:text-white disabled:opacity-30 transition"
+            className="rounded p-1 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-brand-border/40 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 transition"
             title="Bài trước"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="font-semibold text-sm text-white truncate">
+          <span className="font-semibold text-sm text-gray-900 dark:text-white truncate">
             {lesson?.title || `Ngày ${dayNumber}`}
           </span>
           <button
             onClick={() => router.push(`/learn/${Math.min(60, dayNumber + 1)}`)}
             disabled={dayNumber >= 60}
-            className="rounded p-1 text-gray-400 hover:bg-brand-border/40 hover:text-white disabled:opacity-30 transition"
+            className="rounded p-1 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-brand-border/40 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 transition"
             title="Bài kế tiếp"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
+
+          {/* Admin Role Badge */}
+          {isAdmin && (
+            <span className="hidden md:inline-flex items-center gap-1 rounded-full bg-purple-500/10 border border-purple-500/30 px-2 py-0.5 text-[11px] font-bold text-purple-600 dark:text-purple-400">
+              <ShieldCheck className="h-3 w-3" /> Admin Mode
+            </span>
+          )}
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          {/* Admin View Solution Button */}
+          {isAdmin && lesson?.solution_code && (
+            <button
+              onClick={() => setShowAdminSolution(!showAdminSolution)}
+              className="flex items-center gap-1 rounded-md border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-semibold text-purple-600 dark:text-purple-300 hover:bg-purple-500/20 transition"
+              title="Xem đáp án tham khảo (Chỉ dành cho Admin)"
+            >
+              {showAdminSolution ? (
+                <>
+                  <EyeOff className="h-3.5 w-3.5" /> Ẩn đáp án
+                </>
+              ) : (
+                <>
+                  <Eye className="h-3.5 w-3.5" /> Đáp án (Admin)
+                </>
+              )}
+            </button>
+          )}
+
           <button
             onClick={handleResetCode}
-            className="flex items-center gap-1.5 rounded-md border border-brand-border bg-brand-darker px-2.5 py-1 text-xs text-gray-400 hover:text-white transition"
+            className="flex items-center gap-1.5 rounded-md border border-gray-200 dark:border-brand-border bg-gray-50 dark:bg-brand-darker px-2.5 py-1 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition"
             title="Khôi phục mã ban đầu"
           >
             <RotateCcw className="h-3.5 w-3.5" />
@@ -226,27 +285,29 @@ export default function LearnWorkspacePage() {
       {/* Main 3-Pane Responsive Layout */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
         {/* Left Pane: Theory & Requirements */}
-        <div className="hidden lg:flex lg:col-span-4 flex-col border-r border-brand-border bg-brand-darker/60 overflow-y-auto p-6">
-          <div className="prose prose-invert prose-sm max-w-none space-y-4">
-            <div className="whitespace-pre-wrap font-sans text-xs leading-relaxed text-gray-300">
+        <div className="hidden lg:flex lg:col-span-4 flex-col border-r border-gray-200 dark:border-brand-border bg-gray-50 dark:bg-brand-darker/60 overflow-y-auto p-6 transition-colors">
+          <div className="prose prose-sm max-w-none space-y-4 text-gray-800 dark:text-gray-300">
+            <div className="whitespace-pre-wrap font-sans text-xs leading-relaxed">
               {lesson?.description_md || "Đang tải bài giảng..."}
             </div>
 
             {/* Test Cases Preview */}
             {lesson?.test_cases && (
-              <div className="mt-6 rounded-lg border border-brand-border bg-brand-dark/90 p-3">
-                <div className="text-xs font-bold text-gray-300 mb-2">
+              <div className="mt-6 rounded-lg border border-gray-200 dark:border-brand-border bg-white dark:bg-brand-dark/90 p-3 shadow-sm transition-colors">
+                <div className="text-xs font-bold text-gray-800 dark:text-gray-300 mb-2">
                   Bộ kiểm thử mẫu (Test Cases):
                 </div>
                 <div className="space-y-2">
                   {lesson.test_cases.map((tc: any, i: number) => (
                     <div
                       key={i}
-                      className="rounded border border-brand-border/40 bg-black/40 p-2 text-[11px] font-mono text-gray-300"
+                      className="rounded border border-gray-200 dark:border-brand-border/40 bg-gray-50 dark:bg-black/40 p-2 text-[11px] font-mono text-gray-700 dark:text-gray-300"
                     >
-                      <div className="text-gray-400">{tc.name}</div>
-                      <div className="text-emerald-400">Gọi: {tc.call}</div>
-                      <div className="text-gray-400">
+                      <div className="text-gray-500 dark:text-gray-400">{tc.name}</div>
+                      <div className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                        Gọi: {tc.call}
+                      </div>
+                      <div className="text-gray-500 dark:text-gray-400">
                         Kỳ vọng: {JSON.stringify(tc.expected)}
                       </div>
                     </div>
@@ -257,65 +318,118 @@ export default function LearnWorkspacePage() {
           </div>
         </div>
 
-        {/* Center Pane: Monaco Code Editor */}
-        <div className="col-span-1 lg:col-span-4 flex flex-col border-r border-brand-border bg-brand-dark overflow-hidden p-2">
-          <div className="flex items-center justify-between px-2 py-1 text-xs text-gray-400">
-            <span>solution.py</span>
-            <span className="text-[11px] text-gray-500">
+        {/* Center Pane: Monaco Code Editor with Auth Overlay */}
+        <div className="relative col-span-1 lg:col-span-4 flex flex-col border-r border-gray-200 dark:border-brand-border bg-white dark:bg-brand-dark overflow-hidden p-2 transition-colors">
+          <div className="flex items-center justify-between px-2 py-1 text-xs text-gray-500 dark:text-gray-400">
+            <span className="font-mono">solution.py</span>
+            <span className="text-[11px] text-gray-400 dark:text-gray-500">
               {isReady ? "Pyodide WASM Ready" : "Khởi tạo Pyodide..."}
             </span>
           </div>
-          <div className="flex-1 overflow-hidden">
+
+          <div className="flex-1 overflow-hidden relative">
             <MonacoEditor value={code} onChange={setCode} />
+
+            {/* Auth Gate Blocking Overlay when unauthenticated */}
+            {mounted && !isAuthenticated && (
+              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-gray-900/80 backdrop-blur-sm p-6 text-center rounded-lg animate-fadeIn">
+                <div className="max-w-xs sm:max-w-sm rounded-xl border border-brand-border bg-brand-card/95 p-6 shadow-2xl text-white">
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                    <Lock className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-base font-bold text-white">Yêu cầu Đăng nhập</h3>
+                  <p className="mt-2 text-xs text-gray-300 leading-relaxed">
+                    Vui lòng đăng nhập hoặc đăng ký tài khoản để viết mã, chạy thử nghiệm với WebAssembly, lưu bản nháp và tích lũy XP.
+                  </p>
+                  <div className="mt-5 flex flex-col sm:flex-row items-center justify-center gap-2.5">
+                    <Link
+                      href={`/login?redirect=/learn/${dayNumber}`}
+                      className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-lg bg-emerald-500 px-4 py-2 text-xs font-semibold text-white shadow hover:bg-emerald-400 transition"
+                    >
+                      <LogIn className="h-3.5 w-3.5" /> Đăng nhập
+                    </Link>
+                    <Link
+                      href={`/register?redirect=/learn/${dayNumber}`}
+                      className="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-lg border border-brand-border bg-brand-dark px-4 py-2 text-xs font-semibold text-gray-200 hover:text-white transition"
+                    >
+                      <UserPlus className="h-3.5 w-3.5" /> Đăng ký
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
+
+          {/* Admin Solution Code Panel Toggle */}
+          {isAdmin && showAdminSolution && lesson?.solution_code && (
+            <div className="mt-2 rounded-lg border border-purple-500/30 bg-purple-950/20 p-3 max-h-48 overflow-y-auto">
+              <div className="text-[11px] font-bold text-purple-400 mb-1 flex items-center gap-1">
+                <ShieldCheck className="h-3.5 w-3.5" /> Mã giải pháp mẫu (Admin Preview):
+              </div>
+              <pre className="text-xs font-mono text-purple-200 whitespace-pre-wrap">
+                {lesson.solution_code}
+              </pre>
+            </div>
+          )}
         </div>
 
-        {/* Right Pane: Console & Algorithm Visualizer Tabs */}
-        <div className="col-span-1 lg:col-span-4 flex flex-col bg-brand-darker overflow-hidden">
-          {/* Tab Header */}
-          <div className="flex h-10 w-full items-center border-b border-brand-border bg-brand-dark px-3 gap-2">
-            <button
-              onClick={() => setActiveTab("console")}
-              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-md transition ${
-                activeTab === "console"
-                  ? "bg-brand-border/40 text-emerald-400"
-                  : "text-gray-400 hover:text-gray-200"
-              }`}
-            >
-              <TerminalIcon className="h-3.5 w-3.5" />
-              Console & Chấm điểm
-            </button>
-            <button
-              onClick={() => setActiveTab("visualizer")}
-              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-md transition ${
-                activeTab === "visualizer"
-                  ? "bg-brand-border/40 text-sky-400"
-                  : "text-gray-400 hover:text-gray-200"
-              }`}
-            >
-              <Activity className="h-3.5 w-3.5" />
-              Algorithm Visualizer
-            </button>
+        {/* Right Pane: Console & Conditional Algorithm Visualizer */}
+        <div className="col-span-1 lg:col-span-4 flex flex-col bg-gray-50 dark:bg-brand-darker overflow-hidden transition-colors">
+          {/* Tab Header (Only shows Visualizer tab if lesson.has_visualizer is true) */}
+          <div className="flex h-10 w-full items-center justify-between border-b border-gray-200 dark:border-brand-border bg-white dark:bg-brand-dark px-3 transition-colors">
+            {lesson?.has_visualizer ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveTab("console")}
+                  className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-md transition ${
+                    activeTab === "console"
+                      ? "bg-gray-100 dark:bg-brand-border/40 text-emerald-600 dark:text-emerald-400"
+                      : "text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                  }`}
+                >
+                  <TerminalIcon className="h-3.5 w-3.5" />
+                  Console & Chấm điểm
+                </button>
+                <button
+                  onClick={() => setActiveTab("visualizer")}
+                  className={`flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-md transition ${
+                    activeTab === "visualizer"
+                      ? "bg-gray-100 dark:bg-brand-border/40 text-sky-600 dark:text-sky-400"
+                      : "text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                  }`}
+                >
+                  <Activity className="h-3.5 w-3.5" />
+                  Algorithm Visualizer
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300">
+                <TerminalIcon className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                Console & Kết quả Chấm điểm
+              </div>
+            )}
           </div>
 
           {/* Tab Content */}
           <div className="flex-1 overflow-y-auto p-4">
-            {activeTab === "console" ? (
+            {lesson?.has_visualizer && activeTab === "visualizer" ? (
+              <AlgorithmVisualizer />
+            ) : (
               <div className="space-y-4">
                 {/* Submission Banner (if exists) */}
                 {submissionFeedback && (
                   <div
                     className={`rounded-lg border p-3 flex items-center justify-between text-xs ${
                       submissionFeedback.status === "PASSED"
-                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                        : "border-rose-500/30 bg-rose-500/10 text-rose-300"
+                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                        : "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300"
                     }`}
                   >
                     <div className="flex items-center gap-2">
                       {submissionFeedback.status === "PASSED" ? (
-                        <CheckCircle className="h-4 w-4 text-emerald-400" />
+                        <CheckCircle className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
                       ) : (
-                        <XCircle className="h-4 w-4 text-rose-400" />
+                        <XCircle className="h-4 w-4 text-rose-500 dark:text-rose-400" />
                       )}
                       <span>
                         {submissionFeedback.status === "PASSED"
@@ -324,7 +438,7 @@ export default function LearnWorkspacePage() {
                       </span>
                     </div>
                     {submissionFeedback.xp_earned > 0 && (
-                      <span className="flex items-center gap-1 font-bold text-amber-400">
+                      <span className="flex items-center gap-1 font-bold text-amber-500 dark:text-amber-400">
                         <Sparkles className="h-3.5 w-3.5" /> +
                         {submissionFeedback.xp_earned} XP
                       </span>
@@ -335,7 +449,7 @@ export default function LearnWorkspacePage() {
                 {/* Test Results Badges */}
                 {output.testResults.length > 0 && (
                   <div className="space-y-2">
-                    <div className="text-xs font-bold text-gray-300">
+                    <div className="text-xs font-bold text-gray-800 dark:text-gray-300">
                       Kết quả Kiểm thử ({output.testResults.filter((t) => t.passed).length}/
                       {output.testResults.length}):
                     </div>
@@ -344,26 +458,26 @@ export default function LearnWorkspacePage() {
                         key={idx}
                         className={`rounded-md border p-2.5 text-xs ${
                           tr.passed
-                            ? "border-emerald-500/30 bg-emerald-950/20 text-emerald-300"
-                            : "border-rose-500/30 bg-rose-950/20 text-rose-300"
+                            ? "border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300"
+                            : "border-rose-500/30 bg-rose-50 dark:bg-rose-950/20 text-rose-800 dark:text-rose-300"
                         }`}
                       >
                         <div className="flex items-center justify-between font-semibold">
                           <span className="flex items-center gap-1.5">
                             {tr.passed ? (
-                              <CheckCircle className="h-3.5 w-3.5 text-emerald-400" />
+                              <CheckCircle className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400" />
                             ) : (
-                              <XCircle className="h-3.5 w-3.5 text-rose-400" />
+                              <XCircle className="h-3.5 w-3.5 text-rose-500 dark:text-rose-400" />
                             )}
                             {tr.name}
                           </span>
-                          <span className="text-[10px]">
+                          <span className="text-[10px] font-bold">
                             {tr.passed ? "ĐẠT" : "KHÔNG ĐẠT"}
                           </span>
                         </div>
                         {!tr.passed && (
-                          <div className="mt-1.5 space-y-0.5 font-mono text-[11px] text-gray-400">
-                            <div>Kỳ vọng: {JSON.stringify(tr.expected)}</div>
+                          <div className="mt-1.5 space-y-0.5 font-mono text-[11px] text-gray-600 dark:text-gray-400">
+                            <div>Kỳ vọng: {JSON.stringify(tcExpected(tr.expected))}</div>
                             <div>Thực tế: {JSON.stringify(tr.actual || tr.error)}</div>
                           </div>
                         )}
@@ -374,7 +488,7 @@ export default function LearnWorkspacePage() {
 
                 {/* Standard Output (stdout) */}
                 <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs text-gray-400 font-semibold">
+                  <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 font-semibold">
                     <span>Đầu ra tiêu chuẩn (stdout):</span>
                     {output.executionTimeMs > 0 && (
                       <span className="flex items-center gap-1 text-[11px] text-gray-500">
@@ -382,7 +496,7 @@ export default function LearnWorkspacePage() {
                       </span>
                     )}
                   </div>
-                  <pre className="min-h-[120px] rounded-md border border-brand-border/60 bg-black/60 p-3 font-mono text-xs text-gray-200 whitespace-pre-wrap overflow-x-auto">
+                  <pre className="min-h-[120px] rounded-md border border-gray-300 dark:border-brand-border/60 bg-gray-950 p-3 font-mono text-xs text-gray-200 whitespace-pre-wrap overflow-x-auto shadow-inner">
                     {output.stdout || (
                       <span className="text-gray-500 italic">
                         Kết quả `print()` sẽ hiển thị tại đây khi bạn bấm &quot;Chạy code&quot;...
@@ -394,7 +508,7 @@ export default function LearnWorkspacePage() {
                 {/* Error / Traceback */}
                 {output.error && (
                   <div className="space-y-1.5">
-                    <div className="text-xs text-rose-400 font-semibold">
+                    <div className="text-xs text-rose-600 dark:text-rose-400 font-semibold">
                       Thông báo lỗi (stderr / Traceback):
                     </div>
                     <pre className="rounded-md border border-rose-500/30 bg-rose-950/30 p-3 font-mono text-xs text-rose-300 whitespace-pre-wrap overflow-x-auto">
@@ -403,8 +517,6 @@ export default function LearnWorkspacePage() {
                   </div>
                 )}
               </div>
-            ) : (
-              <AlgorithmVisualizer />
             )}
           </div>
         </div>
@@ -413,3 +525,6 @@ export default function LearnWorkspacePage() {
   );
 }
 
+function tcExpected(expected: any) {
+  return expected;
+}
