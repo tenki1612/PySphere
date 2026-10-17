@@ -25,88 +25,75 @@ PySphere là nền tảng e-learning tự học lập trình Python thực chi�
 
 ## 🛠️ 2. CÁC TÍNH NĂNG & NÂNG CẤP ĐÃ HOÀN THÀNH
 
-### I. Khắc phục Toàn diện Giao diện Sáng / Tối (Full Light & Dark Theme Overhaul)
-- **Sửa triệt để Root Layout & Body:**
-  - Loại bỏ hoàn toàn class cố định nền tối `bg-brand-darker text-gray-200` tại thẻ `<body>` trong `frontend/src/app/layout.tsx`.
-  - Chuyển sang sử dụng biến hệ thống chuẩn `bg-background text-foreground transition-colors`, giúp khi chuyển sang Giao diện Sáng (Light Mode), **toàn bộ 100% trang web chuyển sang nền sáng thanh lịch (`#f8fafc`) và chữ tối tương phản cao (`#0f172a`)**.
-- **Thanh cuộn thông minh (Adaptive Scrollbars):**
-  - Cập nhật `globals.css` để thanh cuộn tự động đổi màu: Ở Light Mode, track nền màu xám sáng (`#f1f5f9`), thumb màu xám nhạt (`#cbd5e1`); ở Dark Mode, track màu tối (`#161b22`) và thumb (`#30363d`).
-- **Thích ứng Sáng / Tối cho Algorithm Visualizer (Canvas 2D):**
-  - Đồng bộ `theme` từ Zustand store `useLessonStore`.
-  - Khi ở chế độ Sáng:
-    - Nền Canvas chuyển sang `#f8fafc` (thay vì cố định đen `#111827`).
-    - Giá trị số trên các cột chuyển sang chữ đen đậm `#0f172a` (rõ nét, không bị chìm).
-    - Chỉ số mảng bên dưới chuyển sang `#64748b`.
-    - Thẻ chứa, hộp chọn thuật toán, nút đổi mảng, thanh trượt tốc độ và chú thích đều hỗ trợ đầy đủ bộ màu sáng/tối.
-- **Thích ứng Workspace Học tập (`/learn/[day]`):**
-  - Khung lý thuyết bài giảng, khung bài tập, bảng kết quả và modal xác thực đều chuyển nền trắng sáng (`bg-white`) kèm màu chữ đen than (`text-slate-900`) chuẩn công thái học thị giác.
+### I. Đại tu Toàn diện Trang chủ & Bộ Khám phá Lộ trình 60 Ngày (Homepage & Curriculum Explorer)
+- **Hero Section Hiện đại & Trực quan:**
+  - Tích hợp **Interactive Live Code Sandbox** ngay trên Hero: Cho phép học viên gõ và chạy thử code Python mẫu trực tiếp trên trình duyệt mà không cần đăng nhập hay chuyển trang.
+  - Hệ thống 4 thẻ chỉ số nổi bật: *60 Ngày Lộ trình*, *3 Giai đoạn chuyên sâu*, *Mô phỏng Canvas 2D*, và *0s Cài đặt môi trường*.
+- **Ma trận Tính năng Bento Grid:**
+  - 4 khối thẻ trực quan làm nổi bật giá trị cốt lõi: WebAssembly Sandbox an toàn, Mô phỏng Canvas 2D từng bước, Gamification & Streak, Chấm điểm tự động siêu tốc.
+- **Bộ Khám phá Lộ trình 60 Ngày Đa năng (`Curriculum Explorer`):**
+  - **Tabs Giai đoạn:** Lọc linh hoạt `Tất cả (60)`, `Giai đoạn 1: Nền tảng (01-20)`, `Giai đoạn 2: Hàm & Lỗi (21-40)`, `Giai đoạn 3: OOP & Web (41-60)`.
+  - **Tìm kiếm Thời gian thực (Live Search):** Tìm tức thì theo số ngày, tên bài học, chuyên đề.
+  - **Lọc bài tập Visualizer:** Nút chuyển đổi lọc riêng các bài học có tích hợp mô phỏng Canvas 2D.
+  - **Lưới bài học (Curriculum Grid):** Mỗi thẻ bài học hiển thị rõ số ngày, huy hiệu Giai đoạn, thẻ `Visualizer 2D`, trạng thái hoàn thành và điểm thưởng XP.
 
 ---
 
-### II. Trang Hồ sơ & Tiến độ Học tập (`/profile`)
-- **Xây dựng Dashboard Cá nhân hóa toàn diện tại `frontend/src/app/profile/page.tsx`:**
-  - **Thông tin Học viên & Huy hiệu Vai trò:** Hiển thị tên, email, ngày tham gia và huy hiệu `Quản trị viên (Admin)` hoặc `Học viên (Member)`.
-  - **Hệ thống Cấp độ Gamification (XP Level Progression):** Tính toán cấp độ (Level 1 đến Level 5 - Bậc thầy Python) cùng thanh tiến trình phần trăm kinh nghiệm đến cấp tiếp theo.
-  - **Thẻ Chỉ số Nổi bật (Metric Cards):**
-    - Chuỗi ngày học liên tục (Streak Counter) kèm biểu tượng ngọn lửa rực rỡ.
-    - Tổng điểm kinh nghiệm tích lũy (Total XP).
-    - Tỷ lệ hoàn thành lộ trình 60 ngày.
-  - **Phân rã Tiến độ theo 3 Giai đoạn (Stage Breakdown):**
-    - *Giai đoạn 1: Nền tảng Python (Ngày 1 - 20)*
-    - *Giai đoạn 2: Hàm, Module & Xử lý lỗi (Ngày 21 - 40)*
-    - *Giai đoạn 3: OOP & Ứng dụng Web (Ngày 41 - 60)*
-  - **Bảng Lịch sử Nộp bài Toàn diện (Submissions Activity):**
-    - Hỗ trợ lọc nhanh theo trạng thái: "Tất cả", "Đạt" (Passed) và "Chưa đạt" (Failed).
-    - Hiển thị ngày nộp, bài học, thời gian thực thi (ms), số test case vượt qua và nút 1-click **"Đến bài học"** giúp quay lại ôn tập ngay lập tức.
-  - **Tích hợp Điều hướng:** Bổ sung mục "Hồ sơ & Tiến độ" trên thanh điều hướng `Navbar` và biến avatar người dùng thành liên kết trực tiếp vào trang hồ sơ.
+### II. Nâng cấp Không gian Lập trình (Learn Workspace Ergonomics, Zen Mode & Cheatsheet)
+- **Bộ điều hướng Nhanh 60 Ngày (Curriculum Navigator Modal):**
+  - Bổ sung nút **"Lộ trình 60 Ngày"** trên thanh công cụ: Mở modal tra cứu toàn bộ 60 bài học với bộ lọc Giai đoạn và ô tìm kiếm nhanh, giúp học viên chuyển đổi bài học trong 1 click mà không cần quay lại trang chủ.
+- **Sổ tay Tra cứu Cú pháp Nhanh (Python Quick Cheatsheet Modal):**
+  - Nút **"Cú pháp"** trên thanh công cụ mở sổ tay tra cứu các cú pháp Python kinh điển: `print()`, `len()`, `range()`, `enumerate()`, định dạng `F-string`, các phương thức List/Dict, toán tử 3 ngôi, và xử lý ngoại lệ `try-except`.
+  - Tích hợp nút **"Sao chép" (Copy)** kèm phản hồi trực quan giúp dán nhanh mã nguồn vào editor.
+- **Chế độ Tập trung (Zen / Focus Mode):**
+  - Nút **"Tập trung"** cho phép ẩn/hiện cột lý thuyết bên trái để mở rộng Monaco Editor và Console, tối ưu diện tích màn hình cho các bài tập dài.
+- **Tùy chỉnh Kích thước Font chữ Editor:**
+  - Cung cấp nút `A-` / `A+` (12px đến 22px) trực tiếp trên thanh tiêu đề Editor kèm lưu trữ `localStorage`.
+- **Nút Xóa Đầu ra Console:**
+  - Thêm nút **"Xóa output"** giúp làm sạch màn hình kết quả trước mỗi lần chạy thử nghiệm mới.
 
 ---
 
-### III. Mở rộng Bộ mô phỏng Thuật toán: Tìm kiếm & Sắp xếp (Search & Sort Visualizer)
-- **Bổ sung Thuật toán Sắp xếp (Sorting):**
-  - Bubble Sort (Sắp xếp nổi bọt).
-  - Selection Sort (Sắp xếp chọn).
-  - **Insertion Sort (Sắp xếp chèn):** Mô phỏng chi tiết việc lấy `key`, so sánh lùi và chèn vào vị trí chính xác.
-- **Bổ sung Thuật toán Tìm kiếm (Searching):**
-  - **Linear Search (Tìm kiếm tuyến tính):** Quét tuần tự từng phần tử từ trái sang phải, làm nổi bật phần tử đang xét và đánh dấu thành công (xanh) hoặc thất bại nếu không tìm thấy.
-  - **Binary Search (Tìm kiếm nhị phân):**
-    - Tự động sắp xếp mảng tăng dần trước khi thực hiện.
-    - Hiển thị con trỏ trực quan `LEFT`, `MID`, `RIGHT` với huy hiệu nổi trên đầu các cột trên Canvas 2D.
-    - Tự động làm mờ (dimmed) các phần tử nằm ngoài phạm vi tìm kiếm sau mỗi bước chia đôi khoảng.
-  - **Bộ điều khiển Tìm kiếm:** Cho phép người học tự nhập giá trị mục tiêu (Target) để tìm kiếm trực tiếp trên mảng trực quan.
+### III. Hệ thống Huy hiệu Thành tích & Cài đặt Cá nhân hóa (`/profile`)
+- **Bảng Huy hiệu Thành tích (Achievements / Badges):**
+  - 🌟 **Bước chân Đầu tiên:** Hoàn thành bài học Ngày 01.
+  - 🔥 **Chiến binh Bền bỉ:** Duy trì chuỗi Streak học tập liên tục từ 3 ngày.
+  - ⚡ **Tốc độ Thần tốc:** Nộp bài đạt chuẩn với thời gian thực thi dưới 50ms.
+  - 🧠 **Bậc thầy Giải thuật:** Hoàn thành bài học có tích hợp Algorithm Visualizer 2D.
+  - 💎 **Nhà thám hiểm Python:** Tích lũy đạt mốc 200 điểm kinh nghiệm XP.
+  - 🏆 **Kỹ sư Nền tảng:** Chinh phục trọn vẹn 20 bài học Giai đoạn 1.
+  - Trạng thái trực quan: Huy hiệu phát sáng khi mở khóa kèm thanh phần trăm tiến độ cụ thể.
+- **Bảng Cài đặt Cá nhân hóa Học tập (Learning Preferences):**
+  - Cỡ chữ Editor mặc định (12px, 14px, 16px, 18px).
+  - Bật/tắt hiệu ứng pháo hoa chúc mừng Confetti.
+  - Cấu hình tần suất tự động đồng bộ bản nháp lên Cloud (1.5s, 3.0s, hoặc Thủ công).
 
 ---
 
-### IV. Công thái học Lập trình tại Không gian Làm việc (Workspace Ergonomics)
-- **Phím tắt Bàn phím Chuyên nghiệp:**
-  - `Ctrl + Enter` (hoặc `Cmd + Enter` trên macOS): Chạy mã nguồn Python ngay lập tức qua Pyodide WebAssembly.
-  - `Ctrl + S` (hoặc `Cmd + S` trên macOS): Lưu nháp thủ công vào cơ sở dữ liệu và LocalStorage, ngăn chặn việc mở menu lưu mặc định của trình duyệt và hiển thị huy hiệu `Đã lưu nháp!` tức thì.
-- **Tính năng Tải Mã nguồn (.py):**
-  - Bổ sung nút **"Tải .py"** trên thanh công cụ Workspace.
-  - Tự động xuất file mã nguồn Python chuẩn UTF-8 (`day_XX_solution.py`) về máy tính người dùng chỉ với 1 click.
-- **Nâng cấp Hiển thị Markdown (`MarkdownViewer`):**
-  - Render chuẩn xác các cấp tiêu đề (`#`, `##`, `###`), danh sách, khối chú thích (Blockquotes), và inline code badge.
-  - Syntax highlighting cho các khối code kèm nút **"Sao chép" (Copy)** tiện lợi.
-- **Tính năng Lịch sử Nộp bài (Submission History Modal):**
-  - Nút **"Lịch sử"** mở danh sách các lần nộp bài của bài học hiện tại kèm nút **"Nạp mã nguồn lần nộp này vào Editor"**.
+### IV. Khắc phục Toàn diện Giao diện Sáng / Tối (Full Light & Dark Theme Overhaul)
+- **Sửa triệt để Root Layout & Body:** Sử dụng biến hệ thống chuẩn `bg-background text-foreground transition-colors`, giúp khi chuyển sang Giao diện Sáng (Light Mode), **toàn bộ 100% trang web chuyển sang nền sáng thanh lịch (`#f8fafc`) và chữ tối tương phản cao (`#0f172a`)**.
+- **Thanh cuộn thông minh (Adaptive Scrollbars):** Tự động chuyển đổi màu track và thumb theo Light/Dark mode.
+- **Thích ứng Sáng / Tối cho Algorithm Visualizer (Canvas 2D):** Nền Canvas chuyển `#f8fafc` (Sáng) / `#111827` (Tối), chữ giá trị số cột chuyển `#0f172a` (Sáng) / `#ffffff` (Tối).
 
 ---
 
-### V. Làm giàu Chương trình Học tập: Ngày 01 & Ngày 02
-- **Ngày 01: Biến số, Kiểu dữ liệu & Cú pháp cơ bản:**
-  - Lý thuyết chi tiết về hàm `print()`, thụt đầu dòng (Indentation 4 spaces), chú thích (Comments), quy chuẩn đặt tên PEP 8 (`snake_case`), các kiểu dữ liệu nguyên thủy (`int`, `float`, `str`, `bool`) và kỹ thuật ép kiểu (Type Casting).
-- **Ngày 02: Toán tử & Biểu thức (Operators & Expressions):**
-  - Phân tích chi tiết 5 nhóm toán tử: Toán tử số học (`+`, `-`, `*`, `/`, `//`, `%`, `**`), toán tử gán, toán tử so sánh, toán tử logic (`and`, `or`, `not` kèm cơ chế Short-circuit evaluation), và toán tử thành viên (`in`, `not in`).
-  - Quy tắc thứ tự ưu tiên toán học **PEMDAS**.
-  - Đề bài thực hành tính tiền chiết khấu thương mại điện tử `calculate_discounted_price` có ưu đãi VIP, kèm bộ test case và lời giải mẫu.
+### V. Mở rộng Bộ mô phỏng Thuật toán: Tìm kiếm & Sắp xếp (Search & Sort Visualizer)
+- **Thuật toán Sắp xếp (Sorting):** Bubble Sort, Selection Sort, và **Insertion Sort (Sắp xếp chèn)**.
+- **Thuật toán Tìm kiếm (Searching):**
+  - **Linear Search (Tìm kiếm tuyến tính):** Quét tuần tự và đổi màu phần tử.
+  - **Binary Search (Tìm kiếm nhị phân):** Tự động sắp xếp mảng, hiển thị con trỏ trực quan `LEFT`, `MID`, `RIGHT` ngay trên đầu các cột Canvas và làm mờ các phần tử nằm ngoài khoảng xét.
+  - **Bộ điều khiển Tìm kiếm:** Cho phép nhập giá trị mục tiêu (Target) để tìm kiếm trực tiếp trên Canvas 2D.
 
 ---
 
-### VI. Xác thực & Phân quyền Bảo mật (Role-Based Access Control)
-- Đăng ký tài khoản (`/register`), Đăng nhập nhận JWT (`/login`).
-- Phân quyền rõ ràng giữa `Học viên (User)` và `Quản trị viên (Admin)`.
-- Auth Guard bảo vệ workspace và trình biên tập mã: Người dùng chưa đăng nhập sẽ nhận thông báo mời đăng nhập/đăng ký.
-- Quản trị viên (Admin) có huy hiệu Admin và quyền xem trước mã giải mẫu (`solution_code`).
+### VI. Làm giàu Chương trình Học tập: Ngày 01 & Ngày 02
+- **Ngày 01:** Lý thuyết cú pháp Python đầy đủ (print, indentation 4 spaces, comments, PEP 8 snake_case, kiểu dữ liệu, ép kiểu).
+- **Ngày 02:** Lý thuyết toàn diện về 5 nhóm toán tử, thứ tự ưu tiên **PEMDAS**, bài tập tính chiết khấu `calculate_discounted_price` có ưu đãi VIP và làm tròn số.
+
+---
+
+### VII. Thiết lập Bộ Skill Dự án (`.agents/skills/pysphere-dev/SKILL.md`)
+- Đã khởi tạo và đưa vào quản lý phiên bản bộ skill chuẩn hóa toàn bộ kiến trúc, tiêu chuẩn bài giảng 60 ngày, và quy trình kiểm thử bắt buộc cho dự án PySphere.
 
 ---
 
@@ -133,18 +120,18 @@ tests/test_lessons_api.py::test_submit_nonexistent_lesson_returns_404 PASSED [ 7
 tests/test_streak_updated_on_repeat_submission_yesterday PASSED [ 87%]
 tests/test_seed.py::test_seed_and_fetch_lessons PASSED                   [100%]
 
-============================== 8 passed in 2.90s ==============================
+============================== 8 passed in 3.82s ==============================
 ```
 - **8/8 test suites đạt 100% PASS**.
 
 ### Kiểm thử Frontend (ESLint & Next.js Build):
 - **ESLint:** `npm run lint` -> `✔ No ESLint warnings or errors`.
 - **Next.js Production Build:** `npm run build` -> Biên dịch thành công 100% 7 routes tĩnh & SSR với kích thước bundle tối ưu:
-  - `/` (Trang chủ & Lộ trình 60 ngày)
+  - `/` (Trang chủ & Lộ trình 60 ngày - 8.09 kB)
   - `/_not-found` (Trang 404 tùy biến)
-  - `/learn/[day]` (Không gian thực hành đa khung giao diện)
+  - `/learn/[day]` (Không gian thực hành đa khung giao diện - 27 kB)
   - `/login` (Đăng nhập tài khoản)
-  - `/profile` (Hồ sơ học viên & Tiến độ học tập)
+  - `/profile` (Hồ sơ học viên & Tiến độ học tập - 10.2 kB)
   - `/register` (Đăng ký tài khoản)
 
 ---

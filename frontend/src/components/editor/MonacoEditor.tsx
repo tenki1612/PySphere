@@ -8,6 +8,7 @@ interface MonacoEditorProps {
   onChange: (value: string) => void;
   readOnly?: boolean;
   theme?: "vs-dark" | "light";
+  fontSize?: number;
 }
 
 export function MonacoEditor({
@@ -15,6 +16,7 @@ export function MonacoEditor({
   onChange,
   readOnly = false,
   theme: customTheme,
+  fontSize = 14,
 }: MonacoEditorProps) {
   const storeTheme = useLessonStore((s) => s.theme);
   const activeMonacoTheme = customTheme || (storeTheme === "dark" ? "vs-dark" : "light");
@@ -31,7 +33,7 @@ export function MonacoEditor({
         options={{
           readOnly,
           minimap: { enabled: false },
-          fontSize: 14,
+          fontSize,
           fontFamily: "'Fira Code', 'Courier New', monospace",
           lineNumbers: "on",
           roundedSelection: true,

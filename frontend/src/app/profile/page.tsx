@@ -21,6 +21,14 @@ import {
   UserPlus,
   History,
   TrendingUp,
+  Award,
+  Zap,
+  Brain,
+  Compass,
+  Star,
+  Settings,
+  Check,
+  Sliders,
 } from "lucide-react";
 import { api, getToken } from "@/lib/api";
 import { useLessonStore } from "@/store/useLessonStore";
@@ -43,9 +51,32 @@ export default function ProfilePage() {
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [subFilter, setSubFilter] = useState<"ALL" | "PASSED" | "FAILED">("ALL");
 
+  // User Preferences
+  const [prefFontSize, setPrefFontSize] = useState<number>(14);
+  const [prefConfetti, setPrefConfetti] = useState<boolean>(true);
+  const [prefAutosave, setPrefAutosave] = useState<string>("1500");
+  const [savedPrefNotice, setSavedPrefNotice] = useState(false);
+
   useEffect(() => {
     setMounted(true);
+    const fs = localStorage.getItem("pysphere_editor_font_size");
+    if (fs) setPrefFontSize(parseInt(fs, 10));
+    const cf = localStorage.getItem("pysphere_confetti_enabled");
+    if (cf !== null) setPrefConfetti(cf === "true");
+    const as = localStorage.getItem("pysphere_autosave_interval");
+    if (as) setPrefAutosave(as);
   }, []);
+
+  const handleSavePref = (fontSize: number, confetti: boolean, autosave: string) => {
+    setPrefFontSize(fontSize);
+    setPrefConfetti(confetti);
+    setPrefAutosave(autosave);
+    localStorage.setItem("pysphere_editor_font_size", String(fontSize));
+    localStorage.setItem("pysphere_confetti_enabled", String(confetti));
+    localStorage.setItem("pysphere_autosave_interval", autosave);
+    setSavedPrefNotice(true);
+    setTimeout(() => setSavedPrefNotice(false), 2000);
+  };
 
   const token = typeof window !== "undefined" ? getToken() : null;
   const isAuthenticated = mounted ? Boolean(user || token) : true;
@@ -143,6 +174,94 @@ export default function ProfilePage() {
     if (subFilter === "ALL") return true;
     return s.status === subFilter;
   });
+
+  // Gamification 6 Core Achievements
+  const achievements = [
+    {
+      id: "first_step",
+      title: "Bước chân Đầu tiên",
+      desc: "Hoàn thành bài tập Ngày 01",
+      icon: Star,
+      color: "text-amber-500",
+      bgColor: "bg-amber-500/10",
+      borderColor: "border-amber-500/30",
+      isUnlocked: completedLessonsCount >= 1,
+      progressText: completedLessonsCount >= 1 ? "1/1 Hoàn thành" : "0/1 Hoàn thành",
+      percent: completedLessonsCount >= 1 ? 100 : 0,
+    },
+    {
+      id: "streak_warrior",
+      title: "Chiến binh Bền bỉ",
+      desc: "Duy trì chuỗi Streak học tập liên tục từ 3 ngày",
+      icon: Flame,
+      color: "text-orange-500",
+      bgColor: "bg-orange-500/10",
+      borderColor: "border-orange-500/30",
+      isUnlocked: streak >= 3,
+      progressText: `${Math.min(3, streak)}/3 ngày`,
+      percent: Math.min(100, Math.round((streak / 3) * 100)),
+    },
+    {
+      id: "speed_demon",
+      title: "Tốc độ Thần tốc",
+      desc: "Có ít nhất một bài nộp đạt dưới 50ms",
+      icon: Zap,
+      color: "text-sky-500",
+      bgColor: "bg-sky-500/10",
+      borderColor: "border-sky-500/30",
+      isUnlocked: submissions.some((s) => s.status === "PASSED" && s.execution_time_ms < 50),
+      progressText: submissions.some((s) => s.status === "PASSED" && s.execution_time_ms < 50)
+        ? "Đã đạt"
+        : "Chưa đạt",
+      percent: submissions.some((s) => s.status === "PASSED" && s.execution_time_ms < 50) ? 100 : 0,
+    },
+    {
+      id: "algo_master",
+      title: "Bậc thầy Giải thuật",
+      desc: "Hoàn thành bài học có mô phỏng Visualizer 2D",
+      icon: Brain,
+      color: "text-purple-500",
+      bgColor: "bg-purple-500/10",
+      borderColor: "border-purple-500/30",
+      isUnlocked: submissions.some(
+        (s) => s.status === "PASSED" && [5, 6, 15, 16, 17, 18, 19, 20].includes(s.lesson_id)
+      ),
+      progressText: submissions.some(
+        (s) => s.status === "PASSED" && [5, 6, 15, 16, 17, 18, 19, 20].includes(s.lesson_id)
+      )
+        ? "1/1 Bài"
+        : "0/1 Bài",
+      percent: submissions.some(
+        (s) => s.status === "PASSED" && [5, 6, 15, 16, 17, 18, 19, 20].includes(s.lesson_id)
+      )
+        ? 100
+        : 0,
+    },
+    {
+      id: "xp_explorer",
+      title: "Nhà thám hiểm Python",
+      desc: "Tích lũy đạt mốc 200 điểm kinh nghiệm XP",
+      icon: Compass,
+      color: "text-emerald-500",
+      bgColor: "bg-emerald-500/10",
+      borderColor: "border-emerald-500/30",
+      isUnlocked: currentXp >= 200,
+      progressText: `${Math.min(200, currentXp)}/200 XP`,
+      percent: Math.min(100, Math.round((currentXp / 200) * 100)),
+    },
+    {
+      id: "stage1_master",
+      title: "Kỹ sư Nền tảng",
+      desc: "Chinh phục toàn bộ 20 bài học Giai đoạn 1",
+      icon: Award,
+      color: "text-indigo-500",
+      bgColor: "bg-indigo-500/10",
+      borderColor: "border-indigo-500/30",
+      isUnlocked: stage1Completed >= 20,
+      progressText: `${stage1Completed}/20 bài`,
+      percent: Math.min(100, Math.round((stage1Completed / 20) * 100)),
+    },
+  ];
 
   return (
     <div className="flex-1 w-full max-w-6xl mx-auto px-4 py-8 space-y-8">
@@ -350,6 +469,81 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* Achievements & Badges Grid */}
+      <div className="rounded-2xl border border-gray-200 dark:border-brand-border bg-white dark:bg-brand-card p-6 md:p-8 shadow-sm transition-colors space-y-6">
+        <div>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-amber-500" />
+            Huy hiệu & Thành tích ({achievements.filter((a) => a.isUnlocked).length}/{achievements.length})
+          </h2>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Bộ sưu tập các cột mốc danh giá ghi nhận nỗ lực rèn luyện của bạn trên hành trình PySphere
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {achievements.map((ach) => {
+            const IconComponent = ach.icon;
+            return (
+              <div
+                key={ach.id}
+                className={`relative rounded-xl border p-4 flex flex-col justify-between transition ${
+                  ach.isUnlocked
+                    ? `border-amber-500/40 bg-gradient-to-br from-amber-500/5 to-yellow-500/10 shadow-sm`
+                    : "border-gray-200 dark:border-brand-border/40 bg-gray-50/50 dark:bg-brand-dark/30 opacity-70"
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div
+                      className={`h-10 w-10 rounded-xl flex items-center justify-center ${
+                        ach.isUnlocked
+                          ? `${ach.bgColor} ${ach.color} shadow-sm border ${ach.borderColor}`
+                          : "bg-gray-200 dark:bg-gray-800 text-gray-400"
+                      }`}
+                    >
+                      <IconComponent className="h-5 w-5" />
+                    </div>
+
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        ach.isUnlocked
+                          ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30"
+                          : "bg-gray-100 dark:bg-gray-800 text-gray-400"
+                      }`}
+                    >
+                      {ach.isUnlocked ? "Đã mở khóa" : "Đang thực hiện"}
+                    </span>
+                  </div>
+
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+                    {ach.title}
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                    {ach.desc}
+                  </p>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-gray-100 dark:border-brand-border/40 space-y-1.5">
+                  <div className="flex items-center justify-between text-[10px] text-gray-500 dark:text-gray-400 font-medium">
+                    <span>Tiến độ:</span>
+                    <span>{ach.progressText}</span>
+                  </div>
+                  <div className="h-1.5 w-full rounded-full bg-gray-200 dark:bg-gray-800 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${
+                        ach.isUnlocked ? "bg-amber-500" : "bg-gray-400"
+                      }`}
+                      style={{ width: `${ach.percent}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Submission History Section */}
       <div className="rounded-2xl border border-gray-200 dark:border-brand-border bg-white dark:bg-brand-card p-6 md:p-8 shadow-sm transition-colors space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -454,6 +648,109 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
+
+      {/* Learning Preferences Panel */}
+      <div className="rounded-2xl border border-gray-200 dark:border-brand-border bg-white dark:bg-brand-card p-6 md:p-8 shadow-sm transition-colors space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
+              <Sliders className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              Cài đặt Cá nhân hóa Học tập
+            </h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Tùy chỉnh trải nghiệm không gian gõ code và trình biên tập theo thói quen của bạn
+            </p>
+          </div>
+          {savedPrefNotice && (
+            <span className="flex items-center gap-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 animate-fadeIn">
+              <Check className="h-3.5 w-3.5" /> Đã lưu cài đặt!
+            </span>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+          {/* Option 1: Font size */}
+          <div className="rounded-xl border border-gray-200 dark:border-brand-border/60 bg-gray-50/50 dark:bg-brand-dark/40 p-4 space-y-3">
+            <span className="text-xs font-bold text-gray-800 dark:text-gray-200">
+              Cỡ chữ Editor mặc định
+            </span>
+            <div className="flex items-center gap-2">
+              {[12, 14, 16, 18].map((size) => (
+                <button
+                  key={size}
+                  onClick={() => handleSavePref(size, prefConfetti, prefAutosave)}
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition ${
+                    prefFontSize === size
+                      ? "border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold"
+                      : "border-gray-200 dark:border-brand-border bg-white dark:bg-brand-dark text-gray-600 dark:text-gray-400"
+                  }`}
+                >
+                  {size}px
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-gray-500">Kích thước hiển thị mã nguồn trong Monaco Editor.</p>
+          </div>
+
+          {/* Option 2: Confetti */}
+          <div className="rounded-xl border border-gray-200 dark:border-brand-border/60 bg-gray-50/50 dark:bg-brand-dark/40 p-4 space-y-3">
+            <span className="text-xs font-bold text-gray-800 dark:text-gray-200">
+              Hiệu ứng Chúc mừng (Confetti)
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleSavePref(prefFontSize, true, prefAutosave)}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition ${
+                  prefConfetti
+                    ? "border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold"
+                    : "border-gray-200 dark:border-brand-border bg-white dark:bg-brand-dark text-gray-600 dark:text-gray-400"
+                }`}
+              >
+                Bật hiệu ứng
+              </button>
+              <button
+                onClick={() => handleSavePref(prefFontSize, false, prefAutosave)}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition ${
+                  !prefConfetti
+                    ? "border-rose-500 bg-rose-500/10 text-rose-700 dark:text-rose-300 font-bold"
+                    : "border-gray-200 dark:border-brand-border bg-white dark:bg-brand-dark text-gray-600 dark:text-gray-400"
+                }`}
+              >
+                Tắt
+              </button>
+            </div>
+            <p className="text-[11px] text-gray-500">Phun pháo hoa khi nộp bài đạt 100% test cases.</p>
+          </div>
+
+          {/* Option 3: Autosave */}
+          <div className="rounded-xl border border-gray-200 dark:border-brand-border/60 bg-gray-50/50 dark:bg-brand-dark/40 p-4 space-y-3">
+            <span className="text-xs font-bold text-gray-800 dark:text-gray-200">
+              Tự động lưu bản nháp
+            </span>
+            <div className="flex items-center gap-2">
+              {[
+                { label: "1.5 giây", val: "1500" },
+                { label: "3.0 giây", val: "3000" },
+                { label: "Thủ công", val: "manual" },
+              ].map((item) => (
+                <button
+                  key={item.val}
+                  onClick={() => handleSavePref(prefFontSize, prefConfetti, item.val)}
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition ${
+                    prefAutosave === item.val
+                      ? "border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold"
+                      : "border-gray-200 dark:border-brand-border bg-white dark:bg-brand-dark text-gray-600 dark:text-gray-400"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-gray-500">Thời gian tự động đồng bộ code lên Cloud.</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
+
