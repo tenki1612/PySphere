@@ -69,6 +69,9 @@ export const api = {
       body: JSON.stringify(data),
     }),
 
+  getSubmissionHistory: (lessonId?: number) =>
+    request(lessonId ? `/submissions/history?lesson_id=${lessonId}` : "/submissions/history"),
+
   // Auth
   register: (data: { email: string; username: string; password: string }) =>
     request("/auth/register", {

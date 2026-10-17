@@ -15,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi" className="dark">
-      <body className="min-h-screen bg-brand-darker text-gray-200 antialiased flex flex-col">
+      <body className="min-h-screen bg-background text-foreground antialiased flex flex-col transition-colors">
         <Navbar />
         <main className="flex-1 flex flex-col">{children}</main>
       </body>

@@ -57,5 +57,7 @@ pgdata/
 *.swp
 *.swo
 .DS_Store
-Thumbs.db
+# Understand Anything Knowledge Graph
+.ua/
+.understand-anything/
 
