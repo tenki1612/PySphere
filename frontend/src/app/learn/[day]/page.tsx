@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import confetti from "canvas-confetti";
@@ -27,6 +27,8 @@ import {
   X,
   FileCode,
   Calendar,
+  Download,
+  Save,
 } from "lucide-react";
 import { MonacoEditor } from "@/components/editor/MonacoEditor";
 import { AlgorithmVisualizer } from "@/components/visualizer/AlgorithmVisualizer";
@@ -53,6 +55,7 @@ export default function LearnWorkspacePage() {
   const [showHistory, setShowHistory] = useState(false);
   const [historyList, setHistoryList] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [savedStatus, setSavedStatus] = useState<string | null>(null);
 
   const { isReady, isRunning, output, runCode, runCodeAsync } = usePyodide();
   const { user, updateXpAndStreak } = useLessonStore();
@@ -142,15 +145,63 @@ export default function LearnWorkspacePage() {
     }
   };
 
+  // Manual Draft Save (Ctrl+S)
+  const handleManualSave = useCallback(async () => {
+    if (!isAuthenticated || !dayNumber) return;
+    localStorage.setItem(`pysphere_draft_day_${dayNumber}`, code);
+    setSavedStatus("Đang lưu...");
+    try {
+      await api.syncDraft(dayNumber, code);
+      setSavedStatus("Đã lưu nháp!");
+    } catch {
+      setSavedStatus("Đã lưu offline");
+    }
+    setTimeout(() => setSavedStatus(null), 2500);
+  }, [code, dayNumber, isAuthenticated]);
+
+  // Download Code as .py file
+  const handleDownloadCode = () => {
+    const blob = new Blob([code], { type: "text/x-python;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `day_${dayNumber < 10 ? "0" + dayNumber : dayNumber}_solution.py`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   // Handle Run Code (Client-Side WASM)
-  const handleRunCode = () => {
+  const handleRunCode = useCallback(() => {
     if (!isAuthenticated) {
       router.push(`/login?redirect=/learn/${dayNumber}`);
       return;
     }
     setActiveTab("console");
     runCode(code, lesson?.test_cases || []);
-  };
+  }, [code, dayNumber, isAuthenticated, lesson, router, runCode]);
+
+  // Keyboard Shortcuts (Ctrl+Enter to Run, Ctrl+S to Save)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+Enter or Cmd+Enter -> Run Code
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        if (!isRunning && isReady) {
+          handleRunCode();
+        }
+      }
+      // Ctrl+S or Cmd+S -> Save Draft
+      if ((e.ctrlKey || e.metaKey) && (e.key === "s" || e.key === "S")) {
+        e.preventDefault();
+        handleManualSave();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleManualSave, handleRunCode, isReady, isRunning]);
 
   // Handle Submit Solution (Promise-based, zero race condition)
   const handleSubmit = async () => {
@@ -246,6 +297,15 @@ export default function LearnWorkspacePage() {
         {/* Action Controls */}
         <div className="flex items-center gap-2">
           {/* Submission History Button */}
+          {/* Save Status Notification */}
+          {savedStatus && (
+            <span className="flex items-center gap-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 animate-fadeIn">
+              <Save className="h-3 w-3" />
+              {savedStatus}
+            </span>
+          )}
+
+          {/* Submission History Button */}
           <button
             onClick={openHistoryModal}
             className="flex items-center gap-1.5 rounded-md border border-gray-200 dark:border-brand-border bg-gray-50 dark:bg-brand-darker px-2.5 py-1 text-xs text-gray-700 dark:text-gray-300 hover:text-gray-950 dark:hover:text-white transition"
@@ -253,6 +313,16 @@ export default function LearnWorkspacePage() {
           >
             <History className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
             <span className="hidden sm:inline">Lịch sử</span>
+          </button>
+
+          {/* Download .py Button */}
+          <button
+            onClick={handleDownloadCode}
+            className="flex items-center gap-1.5 rounded-md border border-gray-200 dark:border-brand-border bg-gray-50 dark:bg-brand-darker px-2.5 py-1 text-xs text-gray-700 dark:text-gray-300 hover:text-gray-950 dark:hover:text-white transition"
+            title="Tải mã nguồn (.py) về máy tính"
+          >
+            <Download className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+            <span className="hidden sm:inline">Tải .py</span>
           </button>
 
           {/* Admin View Solution Button */}
@@ -286,6 +356,7 @@ export default function LearnWorkspacePage() {
           <button
             onClick={handleRunCode}
             disabled={isRunning || !isReady}
+            title="Chạy code (Ctrl + Enter)"
             className="flex items-center gap-1.5 rounded-md bg-sky-600 px-3.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-sky-500 disabled:opacity-50 transition"
           >
             {isRunning ? (

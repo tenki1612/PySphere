@@ -16,6 +16,7 @@ import {
   LogIn,
   ShieldCheck,
   UserCheck,
+  Trophy,
 } from "lucide-react";
 
 export function Navbar() {
@@ -84,6 +85,13 @@ export function Navbar() {
           <Layers className="h-4 w-4 text-gray-400" />
           Workspace Thực hành
         </Link>
+        <Link
+          href="/profile"
+          className="flex items-center gap-1.5 text-gray-600 dark:text-gray-300 hover:text-emerald-500 dark:hover:text-white transition"
+        >
+          <Trophy className="h-4 w-4 text-gray-400" />
+          Hồ sơ & Tiến độ
+        </Link>
       </nav>
 
       {/* User Actions & Gamification */}
@@ -128,12 +136,13 @@ export function Navbar() {
 
             {/* User Avatar & Logout */}
             <div className="flex items-center gap-2">
-              <div
-                className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr from-emerald-600 to-teal-400 text-xs font-bold text-white shadow-sm"
-                title={`${user.username} (${user.email})`}
+              <Link
+                href="/profile"
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr from-emerald-600 to-teal-400 text-xs font-bold text-white shadow-sm hover:ring-2 hover:ring-emerald-500 transition"
+                title={`Hồ sơ cá nhân: ${user.username} (${user.email})`}
               >
                 {user.username ? user.username.slice(0, 2).toUpperCase() : "PY"}
-              </div>
+              </Link>
 
               <button
                 onClick={logout}

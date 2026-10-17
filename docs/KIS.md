@@ -43,34 +43,70 @@ PySphere là nền tảng e-learning tự học lập trình Python thực chi�
 
 ---
 
-### II. Nâng cấp Bộ hiển thị Bài giảng Markdown Chuyên nghiệp (`MarkdownViewer`)
-- Xây dựng component `frontend/src/components/curriculum/MarkdownViewer.tsx`:
-  - Phân tích và render chuẩn các cấp tiêu đề (`#`, `##`, `###`) với màu sắc nhận diện PySphere (Emerald).
-  - Khối mã nguồn (Code fences) hiển thị chuyên nghiệp với syntax highlight nền tối và nút **"Sao chép" (Copy)** tiện lợi.
-  - Các phần tử danh sách gạch đầu dòng, danh sách đánh số, trích dẫn (Blockquotes) và inline code badge đều tự động chuyển đổi màu sắc hài hòa theo chế độ Sáng / Tối.
+### II. Trang Hồ sơ & Tiến độ Học tập (`/profile`)
+- **Xây dựng Dashboard Cá nhân hóa toàn diện tại `frontend/src/app/profile/page.tsx`:**
+  - **Thông tin Học viên & Huy hiệu Vai trò:** Hiển thị tên, email, ngày tham gia và huy hiệu `Quản trị viên (Admin)` hoặc `Học viên (Member)`.
+  - **Hệ thống Cấp độ Gamification (XP Level Progression):** Tính toán cấp độ (Level 1 đến Level 5 - Bậc thầy Python) cùng thanh tiến trình phần trăm kinh nghiệm đến cấp tiếp theo.
+  - **Thẻ Chỉ số Nổi bật (Metric Cards):**
+    - Chuỗi ngày học liên tục (Streak Counter) kèm biểu tượng ngọn lửa rực rỡ.
+    - Tổng điểm kinh nghiệm tích lũy (Total XP).
+    - Tỷ lệ hoàn thành lộ trình 60 ngày.
+  - **Phân rã Tiến độ theo 3 Giai đoạn (Stage Breakdown):**
+    - *Giai đoạn 1: Nền tảng Python (Ngày 1 - 20)*
+    - *Giai đoạn 2: Hàm, Module & Xử lý lỗi (Ngày 21 - 40)*
+    - *Giai đoạn 3: OOP & Ứng dụng Web (Ngày 41 - 60)*
+  - **Bảng Lịch sử Nộp bài Toàn diện (Submissions Activity):**
+    - Hỗ trợ lọc nhanh theo trạng thái: "Tất cả", "Đạt" (Passed) và "Chưa đạt" (Failed).
+    - Hiển thị ngày nộp, bài học, thời gian thực thi (ms), số test case vượt qua và nút 1-click **"Đến bài học"** giúp quay lại ôn tập ngay lập tức.
+  - **Tích hợp Điều hướng:** Bổ sung mục "Hồ sơ & Tiến độ" trên thanh điều hướng `Navbar` và biến avatar người dùng thành liên kết trực tiếp vào trang hồ sơ.
 
 ---
 
-### III. Mở rộng Bộ mô phỏng Thuật toán: Bổ sung Insertion Sort (Sắp xếp chèn)
-- Mở rộng `AlgorithmVisualizer`:
-  - Ngoài Bubble Sort và Selection Sort, đã triển khai hoàn chỉnh thuật toán **Insertion Sort (Sắp xếp chèn)**.
-  - Sinh chuỗi các bước mô phỏng chi tiết: Chọn phần tử `key`, so sánh với các phần tử trong đoạn đã sắp xếp, dịch chuyển phần tử lớn hơn sang phải, và chèn `key` vào vị trí chính xác.
-  - Cho phép người học quan sát trực quan sự khác biệt về số phép so sánh/dịch chuyển giữa 3 thuật toán sắp xếp kinh điển.
+### III. Mở rộng Bộ mô phỏng Thuật toán: Tìm kiếm & Sắp xếp (Search & Sort Visualizer)
+- **Bổ sung Thuật toán Sắp xếp (Sorting):**
+  - Bubble Sort (Sắp xếp nổi bọt).
+  - Selection Sort (Sắp xếp chọn).
+  - **Insertion Sort (Sắp xếp chèn):** Mô phỏng chi tiết việc lấy `key`, so sánh lùi và chèn vào vị trí chính xác.
+- **Bổ sung Thuật toán Tìm kiếm (Searching):**
+  - **Linear Search (Tìm kiếm tuyến tính):** Quét tuần tự từng phần tử từ trái sang phải, làm nổi bật phần tử đang xét và đánh dấu thành công (xanh) hoặc thất bại nếu không tìm thấy.
+  - **Binary Search (Tìm kiếm nhị phân):**
+    - Tự động sắp xếp mảng tăng dần trước khi thực hiện.
+    - Hiển thị con trỏ trực quan `LEFT`, `MID`, `RIGHT` với huy hiệu nổi trên đầu các cột trên Canvas 2D.
+    - Tự động làm mờ (dimmed) các phần tử nằm ngoài phạm vi tìm kiếm sau mỗi bước chia đôi khoảng.
+  - **Bộ điều khiển Tìm kiếm:** Cho phép người học tự nhập giá trị mục tiêu (Target) để tìm kiếm trực tiếp trên mảng trực quan.
 
 ---
 
-### IV. Tính năng Lịch sử Nộp bài (Submission History Modal)
-- Bổ sung hàm API `getSubmissionHistory(lessonId)` trong `frontend/src/lib/api.ts`.
-- Thêm nút **"Lịch sử"** trên thanh công cụ của Workspace làm bài:
-  - Hiển thị danh sách các lần nộp bài trước đó của học viên kèm trạng thái ĐẠT (xanh) / CHƯA ĐẠT (đỏ), số lượng test vượt qua, thời gian thực thi (ms) và mốc thời gian chi tiết.
-  - Tích hợp nút **"Nạp mã nguồn lần nộp này vào Editor"** giúp học viên nhanh chóng khôi phục lại giải pháp đã nộp trước đó chỉ với 1 click.
+### IV. Công thái học Lập trình tại Không gian Làm việc (Workspace Ergonomics)
+- **Phím tắt Bàn phím Chuyên nghiệp:**
+  - `Ctrl + Enter` (hoặc `Cmd + Enter` trên macOS): Chạy mã nguồn Python ngay lập tức qua Pyodide WebAssembly.
+  - `Ctrl + S` (hoặc `Cmd + S` trên macOS): Lưu nháp thủ công vào cơ sở dữ liệu và LocalStorage, ngăn chặn việc mở menu lưu mặc định của trình duyệt và hiển thị huy hiệu `Đã lưu nháp!` tức thì.
+- **Tính năng Tải Mã nguồn (.py):**
+  - Bổ sung nút **"Tải .py"** trên thanh công cụ Workspace.
+  - Tự động xuất file mã nguồn Python chuẩn UTF-8 (`day_XX_solution.py`) về máy tính người dùng chỉ với 1 click.
+- **Nâng cấp Hiển thị Markdown (`MarkdownViewer`):**
+  - Render chuẩn xác các cấp tiêu đề (`#`, `##`, `###`), danh sách, khối chú thích (Blockquotes), và inline code badge.
+  - Syntax highlighting cho các khối code kèm nút **"Sao chép" (Copy)** tiện lợi.
+- **Tính năng Lịch sử Nộp bài (Submission History Modal):**
+  - Nút **"Lịch sử"** mở danh sách các lần nộp bài của bài học hiện tại kèm nút **"Nạp mã nguồn lần nộp này vào Editor"**.
 
 ---
 
-### V. Các Tính năng Đã Hoàn thành Trước đó:
-- **Xác thực & Phân quyền User / Admin:** Trang `/login`, `/register`, Auth Guard bảo vệ workspace, huy hiệu Admin và tính năng xem đáp án mẫu (`solution_code`) cho Admin.
-- **Làm giàu Ngày 01:** Lý thuyết cú pháp Python đầy đủ (print, indentation 4 spaces, comments, PEP 8 snake_case, kiểu dữ liệu, ép kiểu).
-- **Conditional Visualizer:** Tự động ẩn tab visualizer ở các bài học cơ bản, chỉ hiển thị ở bài học giải thuật (loops, arrays, sorting, recursion).
+### V. Làm giàu Chương trình Học tập: Ngày 01 & Ngày 02
+- **Ngày 01: Biến số, Kiểu dữ liệu & Cú pháp cơ bản:**
+  - Lý thuyết chi tiết về hàm `print()`, thụt đầu dòng (Indentation 4 spaces), chú thích (Comments), quy chuẩn đặt tên PEP 8 (`snake_case`), các kiểu dữ liệu nguyên thủy (`int`, `float`, `str`, `bool`) và kỹ thuật ép kiểu (Type Casting).
+- **Ngày 02: Toán tử & Biểu thức (Operators & Expressions):**
+  - Phân tích chi tiết 5 nhóm toán tử: Toán tử số học (`+`, `-`, `*`, `/`, `//`, `%`, `**`), toán tử gán, toán tử so sánh, toán tử logic (`and`, `or`, `not` kèm cơ chế Short-circuit evaluation), và toán tử thành viên (`in`, `not in`).
+  - Quy tắc thứ tự ưu tiên toán học **PEMDAS**.
+  - Đề bài thực hành tính tiền chiết khấu thương mại điện tử `calculate_discounted_price` có ưu đãi VIP, kèm bộ test case và lời giải mẫu.
+
+---
+
+### VI. Xác thực & Phân quyền Bảo mật (Role-Based Access Control)
+- Đăng ký tài khoản (`/register`), Đăng nhập nhận JWT (`/login`).
+- Phân quyền rõ ràng giữa `Học viên (User)` và `Quản trị viên (Admin)`.
+- Auth Guard bảo vệ workspace và trình biên tập mã: Người dùng chưa đăng nhập sẽ nhận thông báo mời đăng nhập/đăng ký.
+- Quản trị viên (Admin) có huy hiệu Admin và quyền xem trước mã giải mẫu (`solution_code`).
 
 ---
 
@@ -79,6 +115,15 @@ PySphere là nền tảng e-learning tự học lập trình Python thực chi�
 ### Kiểm thử Backend (Pytest):
 ```text
 ============================= test session starts =============================
+platform win32 -- Python 3.14.8, pytest-9.1.1, pluggy-1.7.0 -- D:\PySphere\backend\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: D:\PySphere\backend
+configfile: pytest.ini
+testpaths: tests
+plugins: anyio-4.15.1, asyncio-1.4.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 8 items
+
 tests/test_auth_api.py::test_register_and_login_flow PASSED              [ 12%]
 tests/test_auth_api.py::test_admin_user_role PASSED                      [ 25%]
 tests/test_health.py::test_health_check PASSED                           [ 37%]
@@ -87,13 +132,20 @@ tests/test_lessons_api.py::test_create_lesson_requires_superuser PASSED  [ 62%]
 tests/test_lessons_api.py::test_submit_nonexistent_lesson_returns_404 PASSED [ 75%]
 tests/test_streak_updated_on_repeat_submission_yesterday PASSED [ 87%]
 tests/test_seed.py::test_seed_and_fetch_lessons PASSED                   [100%]
-============================== 8 passed in 5.37s ==============================
+
+============================== 8 passed in 2.90s ==============================
 ```
 - **8/8 test suites đạt 100% PASS**.
 
 ### Kiểm thử Frontend (ESLint & Next.js Build):
 - **ESLint:** `npm run lint` -> `✔ No ESLint warnings or errors`.
-- **Next.js Production Build:** `npm run build` -> Biên dịch thành công 100% 6 routes tĩnh & SSR với kích thước tối ưu.
+- **Next.js Production Build:** `npm run build` -> Biên dịch thành công 100% 7 routes tĩnh & SSR với kích thước bundle tối ưu:
+  - `/` (Trang chủ & Lộ trình 60 ngày)
+  - `/_not-found` (Trang 404 tùy biến)
+  - `/learn/[day]` (Không gian thực hành đa khung giao diện)
+  - `/login` (Đăng nhập tài khoản)
+  - `/profile` (Hồ sơ học viên & Tiến độ học tập)
+  - `/register` (Đăng ký tài khoản)
 
 ---
 
@@ -104,6 +156,7 @@ tests/test_seed.py::test_seed_and_fetch_lessons PASSED                   [100%]
 docker compose up --build
 ```
 - Frontend: `http://localhost:3000`
+- Hồ sơ học viên: `http://localhost:3000/profile`
 - Workspace Thực hành: `http://localhost:3000/learn/1`
 - Đăng nhập: `http://localhost:3000/login`
 - Đăng ký: `http://localhost:3000/register`
